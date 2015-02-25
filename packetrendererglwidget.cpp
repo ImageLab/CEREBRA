@@ -178,18 +178,18 @@ void PacketRendererGLWidget::updateVoxels(){
         float z = packetToRender.vXYZ[currentVoxel].z;
         float intensity = packetToRender.Intensities[0][currentVoxel];
 
-        vertices << QVector4D(x-0.5, y-0.5, z+0.5, 1.0) << QVector4D(x+ 0.5, y-0.5, z+0.5, 1.0) << QVector4D(x+ 0.5,  y+0.5, z+0.5, 1.0) // Front
-                << QVector4D(x+ 0.5,  y+0.5, z+0.5, 1.0) << QVector4D(x-0.5,  y+0.5, z+0.5, 1.0) << QVector4D(x-0.5, y-0.5, z+0.5, 1.0)
-                << QVector4D(x+ 0.5, y-0.5, z-0.5, 1.0) << QVector4D(x-0.5, y-0.5, z-0.5, 1.0) << QVector4D(x-0.5,  y+0.5, z-0.5, 1.0) // Back
-                << QVector4D(x-0.5,  y+0.5, z-0.5, 1.0) << QVector4D(x+ 0.5,  y+0.5, z-0.5, 1.0) << QVector4D(x+ 0.5, y-0.5, z-0.5, 1.0)
-                << QVector4D(x-0.5, y-0.5, z-0.5, 1.0) << QVector4D(x-0.5, y-0.5, z+0.5, 1.0) << QVector4D(x-0.5,  y+0.5, z+0.5, 1.0) // Left
-                << QVector4D(x-0.5,  y+0.5, z+0.5, 1.0) << QVector4D(x-0.5,  y+0.5, z-0.5, 1.0) << QVector4D(x-0.5, y-0.5, z-0.5, 1.0)
-                << QVector4D(x+ 0.5, y-0.5, z+0.5, 1.0) << QVector4D(x+ 0.5, y-0.5, z-0.5, 1.0) << QVector4D(x+ 0.5,  y+0.5, z-0.5, 1.0) // Right
-                << QVector4D(x+ 0.5,  y+0.5, z-0.5, 1.0) << QVector4D(x+ 0.5,  y+0.5, z+0.5, 1.0) << QVector4D(x+ 0.5, y-0.5, z+0.5, 1.0)
-                << QVector4D(x-0.5,  y+0.5, z+0.5, 1.0) << QVector4D(x+ 0.5,  y+0.5, z+0.5, 1.0) << QVector4D(x+ 0.5,  y+0.5, z-0.5, 1.0) // Top
-                << QVector4D(x+ 0.5,  y+0.5, z-0.5, 1.0) << QVector4D(x-0.5,  y+0.5, z-0.5, 1.0) << QVector4D(x-0.5,  y+0.5, z+0.5, 1.0)
-                << QVector4D(x-0.5, y-0.5, z-0.5, 1.0) << QVector4D(x+ 0.5, y-0.5, z-0.5, 1.0) << QVector4D(x+ 0.5, y-0.5, z+0.5, 1.0) // Bottom
-                << QVector4D(x+ 0.5, y-0.5, z+0.5, 1.0) << QVector4D(x-0.5, y-0.5, z+0.5, 1.0) << QVector4D(x-0.5, y-0.5, z-0.5, 1.0);
+        vertices << QVector4D(x-0.2, y-0.2, z+0.2, 1.0) << QVector4D(x+ 0.2, y-0.2, z+0.2, 1.0) << QVector4D(x+ 0.2,  y+0.2, z+0.2, 1.0) // Front
+                << QVector4D(x+ 0.2,  y+0.2, z+0.2, 1.0) << QVector4D(x-0.2,  y+0.2, z+0.2, 1.0) << QVector4D(x-0.2, y-0.2, z+0.2, 1.0)
+                << QVector4D(x+ 0.2, y-0.2, z-0.2, 1.0) << QVector4D(x-0.2, y-0.2, z-0.2, 1.0) << QVector4D(x-0.2,  y+0.2, z-0.2, 1.0) // Back
+                << QVector4D(x-0.2,  y+0.2, z-0.2, 1.0) << QVector4D(x+ 0.2,  y+0.2, z-0.2, 1.0) << QVector4D(x+ 0.2, y-0.2, z-0.2, 1.0)
+                << QVector4D(x-0.2, y-0.2, z-0.2, 1.0) << QVector4D(x-0.2, y-0.2, z+0.2, 1.0) << QVector4D(x-0.2,  y+0.2, z+0.2, 1.0) // Left
+                << QVector4D(x-0.2,  y+0.2, z+0.2, 1.0) << QVector4D(x-0.2,  y+0.2, z-0.2, 1.0) << QVector4D(x-0.2, y-0.2, z-0.2, 1.0)
+                << QVector4D(x+ 0.2, y-0.2, z+0.2, 1.0) << QVector4D(x+ 0.2, y-0.2, z-0.2, 1.0) << QVector4D(x+ 0.2,  y+0.2, z-0.2, 1.0) // Right
+                << QVector4D(x+ 0.2,  y+0.2, z-0.2, 1.0) << QVector4D(x+ 0.2,  y+0.2, z+0.2, 1.0) << QVector4D(x+ 0.2, y-0.2, z+0.2, 1.0)
+                << QVector4D(x-0.2,  y+0.2, z+0.2, 1.0) << QVector4D(x+ 0.2,  y+0.2, z+0.2, 1.0) << QVector4D(x+ 0.2,  y+0.2, z-0.2, 1.0) // Top
+                << QVector4D(x+ 0.2,  y+0.2, z-0.2, 1.0) << QVector4D(x-0.2,  y+0.2, z-0.2, 1.0) << QVector4D(x-0.2,  y+0.2, z+0.2, 1.0)
+                << QVector4D(x-0.2, y-0.2, z-0.2, 1.0) << QVector4D(x+ 0.2, y-0.2, z-0.2, 1.0) << QVector4D(x+ 0.2, y-0.2, z+0.2, 1.0) // Bottom
+                << QVector4D(x+ 0.2, y-0.2, z+0.2, 1.0) << QVector4D(x-0.2, y-0.2, z+0.2, 1.0) << QVector4D(x-0.2, y-0.2, z-0.2, 1.0);
 
 
         colors << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) // Front
@@ -252,11 +252,6 @@ void PacketRendererGLWidget::readVoxels(){
             min = intensities[i];
         if( intensities[i] > max)
             max = intensities[i];
-    }
-
-    for( int i = 0; i < intensities.length(); i++) {
-        intensities[i] = (intensities[i] - min)/(max - min);
-        printf( "%f\n", intensities[i]);
     }
 
     packetToRender.vXYZ = new libsimple::Packet::Point3D[fileVertexPos.length()];
