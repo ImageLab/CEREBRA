@@ -87,7 +87,7 @@ private:
     QMatrix4x4 projection;
     QMatrix4x4 modelView;
     QGLShaderProgram shaderProgram;
-    QVector<QVector3D> vertices;
+    QVector<QVector4D> vertices;
     QVector<QVector4D> colors;
     QVector<QVector2D> textureCoordinates;
 

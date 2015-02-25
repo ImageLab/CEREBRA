@@ -172,18 +172,18 @@ void PacketRendererGLWidget::updateVoxels(){
         float z = packetToRender.vXYZ[currentVoxel].z;
         float intensity = packetToRender.Intensities[0][currentVoxel];
 
-        vertices << QVector3D(x-0.5, y-0.5, z+0.5) << QVector3D(x+ 0.5, y-0.5, z+0.5) << QVector3D(x+ 0.5,  y+0.5, z+0.5) // Front
-                << QVector3D(x+ 0.5,  y+0.5, z+0.5) << QVector3D(x-0.5,  y+0.5, z+0.5) << QVector3D(x-0.5, y-0.5, z+0.5)
-                << QVector3D(x+ 0.5, y-0.5, z-0.5) << QVector3D(x-0.5, y-0.5, z-0.5) << QVector3D(x-0.5,  y+0.5, z-0.5) // Back
-                << QVector3D(x-0.5,  y+0.5, z-0.5) << QVector3D(x+ 0.5,  y+0.5, z-0.5) << QVector3D(x+ 0.5, y-0.5, z-0.5)
-                << QVector3D(x-0.5, y-0.5, z-0.5) << QVector3D(x-0.5, y-0.5, z+0.5) << QVector3D(x-0.5,  y+0.5, z+0.5) // Left
-                << QVector3D(x-0.5,  y+0.5, z+0.5) << QVector3D(x-0.5,  y+0.5, z-0.5) << QVector3D(x-0.5, y-0.5, z-0.5)
-                << QVector3D(x+ 0.5, y-0.5, z+0.5) << QVector3D(x+ 0.5, y-0.5, z-0.5) << QVector3D(x+ 0.5,  y+0.5, z-0.5) // Right
-                << QVector3D(x+ 0.5,  y+0.5, z-0.5) << QVector3D(x+ 0.5,  y+0.5, z+0.5) << QVector3D(x+ 0.5, y-0.5, z+0.5)
-                << QVector3D(x-0.5,  y+0.5, z+0.5) << QVector3D(x+ 0.5,  y+0.5, z+0.5) << QVector3D(x+ 0.5,  y+0.5, z-0.5) // Top
-                << QVector3D(x+ 0.5,  y+0.5, z-0.5) << QVector3D(x-0.5,  y+0.5, z-0.5) << QVector3D(x-0.5,  y+0.5, z+0.5)
-                << QVector3D(x-0.5, y-0.5, z-0.5) << QVector3D(x+ 0.5, y-0.5, z-0.5) << QVector3D(x+ 0.5, y-0.5, z+0.5) // Bottom
-                << QVector3D(x+ 0.5, y-0.5, z+0.5) << QVector3D(x-0.5, y-0.5, z+0.5) << QVector3D(x-0.5, y-0.5, z-0.5);
+        vertices << QVector4D(x-0.5, y-0.5, z+0.5, 1.0) << QVector4D(x+ 0.5, y-0.5, z+0.5, 1.0) << QVector4D(x+ 0.5,  y+0.5, z+0.5, 1.0) // Front
+                << QVector4D(x+ 0.5,  y+0.5, z+0.5, 1.0) << QVector4D(x-0.5,  y+0.5, z+0.5, 1.0) << QVector4D(x-0.5, y-0.5, z+0.5, 1.0)
+                << QVector4D(x+ 0.5, y-0.5, z-0.5, 1.0) << QVector4D(x-0.5, y-0.5, z-0.5, 1.0) << QVector4D(x-0.5,  y+0.5, z-0.5, 1.0) // Back
+                << QVector4D(x-0.5,  y+0.5, z-0.5, 1.0) << QVector4D(x+ 0.5,  y+0.5, z-0.5, 1.0) << QVector4D(x+ 0.5, y-0.5, z-0.5, 1.0)
+                << QVector4D(x-0.5, y-0.5, z-0.5, 1.0) << QVector4D(x-0.5, y-0.5, z+0.5, 1.0) << QVector4D(x-0.5,  y+0.5, z+0.5, 1.0) // Left
+                << QVector4D(x-0.5,  y+0.5, z+0.5, 1.0) << QVector4D(x-0.5,  y+0.5, z-0.5, 1.0) << QVector4D(x-0.5, y-0.5, z-0.5, 1.0)
+                << QVector4D(x+ 0.5, y-0.5, z+0.5, 1.0) << QVector4D(x+ 0.5, y-0.5, z-0.5, 1.0) << QVector4D(x+ 0.5,  y+0.5, z-0.5, 1.0) // Right
+                << QVector4D(x+ 0.5,  y+0.5, z-0.5, 1.0) << QVector4D(x+ 0.5,  y+0.5, z+0.5, 1.0) << QVector4D(x+ 0.5, y-0.5, z+0.5, 1.0)
+                << QVector4D(x-0.5,  y+0.5, z+0.5, 1.0) << QVector4D(x+ 0.5,  y+0.5, z+0.5, 1.0) << QVector4D(x+ 0.5,  y+0.5, z-0.5, 1.0) // Top
+                << QVector4D(x+ 0.5,  y+0.5, z-0.5, 1.0) << QVector4D(x-0.5,  y+0.5, z-0.5, 1.0) << QVector4D(x-0.5,  y+0.5, z+0.5, 1.0)
+                << QVector4D(x-0.5, y-0.5, z-0.5, 1.0) << QVector4D(x+ 0.5, y-0.5, z-0.5, 1.0) << QVector4D(x+ 0.5, y-0.5, z+0.5, 1.0) // Bottom
+                << QVector4D(x+ 0.5, y-0.5, z+0.5, 1.0) << QVector4D(x-0.5, y-0.5, z+0.5, 1.0) << QVector4D(x-0.5, y-0.5, z-0.5, 1.0);
 
 
         colors << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) // Front
