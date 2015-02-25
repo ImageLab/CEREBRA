@@ -76,10 +76,19 @@ public:
      * @return preferred size to display this widget
      */
     QSize sizeHint() const;
+
+    /**
+     * @brief setPacket updates the packet to be rendered
+     * @param packet is the new packet which will be replaced with the current one, if any.
+     */
     void setPacket( libsimple::Packet packet);
 
 //auxiliary functions
 private:
+
+    void updateMatrices();
+    void updateVoxels();
+    void readVoxels();
 
 private:
 
@@ -103,10 +112,8 @@ private:
     double beta; //rotate around x axis
     double distance;
 
-private:
-
-    void updateMatrices();
-    void updateVoxels();
+    QVector<QVector3D> fileVertexPos;
+    QVector<float> intensities;
 };
 
 #endif // PACKETRENDERERGLWIDGET_H

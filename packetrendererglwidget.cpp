@@ -1,4 +1,5 @@
 #include "packetrendererglwidget.h"
+#include <limits>
 
 PacketRendererGLWidget::PacketRendererGLWidget( QWidget *parent) : QGLWidget( parent)
 {
@@ -13,31 +14,33 @@ PacketRendererGLWidget::PacketRendererGLWidget( QWidget *parent) : QGLWidget( pa
     distance = 2.5;
 
     //sample voxel
-    packetToRender.vXYZ = new libsimple::Packet::Point3D[4];
+    //    packetToRender.vXYZ = new libsimple::Packet::Point3D[4];
 
-    packetToRender.vXYZ[0].x = 0;
-    packetToRender.vXYZ[0].y = 0;
-    packetToRender.vXYZ[0].z = 0;
+    //    packetToRender.vXYZ[0].x = 0;
+    //    packetToRender.vXYZ[0].y = 0;
+    //    packetToRender.vXYZ[0].z = 0;
 
-    packetToRender.vXYZ[1].x = 1;
-    packetToRender.vXYZ[1].y = 1;
-    packetToRender.vXYZ[1].z = 1;
+    //    packetToRender.vXYZ[1].x = 1;
+    //    packetToRender.vXYZ[1].y = 1;
+    //    packetToRender.vXYZ[1].z = 1;
 
-    packetToRender.vXYZ[2].x = 2;
-    packetToRender.vXYZ[2].y = 2;
-    packetToRender.vXYZ[2].z = 2;
+    //    packetToRender.vXYZ[2].x = 2;
+    //    packetToRender.vXYZ[2].y = 2;
+    //    packetToRender.vXYZ[2].z = 2;
 
-    packetToRender.vXYZ[3].x = 2;
-    packetToRender.vXYZ[3].y = 5;
-    packetToRender.vXYZ[3].z = 5;
+    //    packetToRender.vXYZ[3].x = 2;
+    //    packetToRender.vXYZ[3].y = 5;
+    //    packetToRender.vXYZ[3].z = 5;
 
-    packetToRender.Intensities = new double*[1];
-    packetToRender.Intensities[0] = new double[4];
+    //    packetToRender.Intensities = new double*[1];
+    //    packetToRender.Intensities[0] = new double[4];
 
-    packetToRender.Intensities[0][0] = 0.77;
-    packetToRender.Intensities[0][1] = 0.3;
-    packetToRender.Intensities[0][2] = 0.1;
-    packetToRender.Intensities[0][3] = 0.9;
+    //    packetToRender.Intensities[0][0] = 0.77;
+    //    packetToRender.Intensities[0][1] = 0.3;
+    //    packetToRender.Intensities[0][2] = 0.1;
+    //    packetToRender.Intensities[0][3] = 0.9;
+
+    readVoxels();
 }
 
 PacketRendererGLWidget::~PacketRendererGLWidget()
@@ -68,6 +71,9 @@ void PacketRendererGLWidget::initializeGL(){
 
     updateVoxels();
     updateMatrices();
+
+    shaderProgram.enableAttributeArray( "vPosition");
+    shaderProgram.enableAttributeArray( "vColor");
 }
 
 void PacketRendererGLWidget::paintGL(){
@@ -165,7 +171,7 @@ void PacketRendererGLWidget::updateMatrices(){
 void PacketRendererGLWidget::updateVoxels(){
 
     //length fixed for now (See constructor)
-    for( int currentVoxel = 0; currentVoxel < 4; currentVoxel++){
+    for( int currentVoxel = 0; currentVoxel < fileVertexPos.length(); currentVoxel++){
 
         float x = packetToRender.vXYZ[currentVoxel].x;
         float y = packetToRender.vXYZ[currentVoxel].y;
@@ -200,26 +206,8 @@ void PacketRendererGLWidget::updateVoxels(){
                << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0);
     }
 
-    printf( "%d\n", vertices.length());
-    for( int i = 0 ; i < vertices.length()-2; i = i + 3){
-
-        printf( "%f %f %f | %f %f %f | %f %f %f\n", vertices[i].x(), vertices[i].y(), vertices[i].z(),
-                                                    vertices[i+1].x(), vertices[i+1].y(), vertices[i+1].z(),
-                                                    vertices[i+2].x(), vertices[i+2].y(), vertices[i+2].z());
-    }
-
-    printf( "%d\n", colors.length());
-    for( int i = 0 ; i < colors.length()-2; i = i + 3){
-
-        printf( "%f %f %f | %f %f %f | %f %f %f\n", colors[i].x(), colors[i].y(), colors[i].z(),
-                                                    colors[i+1].x(), colors[i+1].y(), colors[i+1].z(),
-                                                    colors[i+2].x(), colors[i+2].y(), colors[i+2].z());
-    }
-
     shaderProgram.setAttributeArray( "vPosition", vertices.constData());
     shaderProgram.setAttributeArray( "vColor", colors.constData());
-    shaderProgram.enableAttributeArray( "vPosition");
-    shaderProgram.enableAttributeArray( "vColor");
 }
 
 void PacketRendererGLWidget::setPacket( Packet packet){
@@ -228,4 +216,59 @@ void PacketRendererGLWidget::setPacket( Packet packet){
     packetToRender = packet;
 
     updateVoxels();
+}
+
+void PacketRendererGLWidget::readVoxels(){
+
+    QFile file(":/voxels.txt");
+
+    if(!file.open(QIODevice::ReadOnly))
+    {
+        qDebug() << "error opening file: " << file.error();
+        return;
+    }
+
+    QTextStream instream(&file);
+    QString pos;
+
+    while( (pos = instream.readLine()) != NULL){
+
+        QString intensityString = instream.readLine();
+
+        QRegExp rx("[ ]");
+        QStringList list = pos.split(rx, QString::SkipEmptyParts);
+        fileVertexPos << QVector3D( list.at(0).toFloat(), list.at(1).toFloat(), list.at(2).toFloat());
+        intensities << intensityString.toFloat();
+    }
+
+    //normalize intensities
+    float max = std::numeric_limits<float>::min();
+    float min = std::numeric_limits<float>::max();
+
+    //find min-max values
+    for( int i = 0; i < intensities.length(); i++){
+
+        if( intensities[i] < min)
+            min = intensities[i];
+        if( intensities[i] > max)
+            max = intensities[i];
+    }
+
+    for( int i = 0; i < intensities.length(); i++) {
+        intensities[i] = (intensities[i] - min)/(max - min);
+        printf( "%f\n", intensities[i]);
+    }
+
+    packetToRender.vXYZ = new libsimple::Packet::Point3D[fileVertexPos.length()];
+    packetToRender.Intensities = new double*[1];
+    packetToRender.Intensities[0] = new double[intensities.length()];
+
+    for( int i = 0; i < fileVertexPos.length(); i++){
+
+        packetToRender.vXYZ[i].x = fileVertexPos[i].x();
+        packetToRender.vXYZ[i].y = fileVertexPos[i].y();
+        packetToRender.vXYZ[i].z = fileVertexPos[i].z();
+        packetToRender.Intensities[0][i] = intensities[i];
+    }
+    file.close();
 }
