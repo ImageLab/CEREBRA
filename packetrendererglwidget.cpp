@@ -8,13 +8,12 @@ PacketRendererGLWidget::PacketRendererGLWidget( QWidget *parent) : QGLWidget( pa
     projection.setToIdentity();
     modelView.setToIdentity();
 
-    //qt tutorial
     alpha = 25;
     beta = -25;
     distance = 2.5;
 
     //sample voxel
-    packetToRender.vXYZ = new libsimple::Packet::Point3D[2];
+    packetToRender.vXYZ = new libsimple::Packet::Point3D[4];
 
     packetToRender.vXYZ[0].x = 0;
     packetToRender.vXYZ[0].y = 0;
@@ -24,11 +23,21 @@ PacketRendererGLWidget::PacketRendererGLWidget( QWidget *parent) : QGLWidget( pa
     packetToRender.vXYZ[1].y = 1;
     packetToRender.vXYZ[1].z = 1;
 
+    packetToRender.vXYZ[2].x = 2;
+    packetToRender.vXYZ[2].y = 2;
+    packetToRender.vXYZ[2].z = 2;
+
+    packetToRender.vXYZ[3].x = 2;
+    packetToRender.vXYZ[3].y = 5;
+    packetToRender.vXYZ[3].z = 5;
+
     packetToRender.Intensities = new double*[1];
-    packetToRender.Intensities[0] = new double[2];
+    packetToRender.Intensities[0] = new double[4];
 
     packetToRender.Intensities[0][0] = 0.77;
     packetToRender.Intensities[0][1] = 0.3;
+    packetToRender.Intensities[0][2] = 0.1;
+    packetToRender.Intensities[0][3] = 0.9;
 }
 
 PacketRendererGLWidget::~PacketRendererGLWidget()
@@ -55,18 +64,10 @@ void PacketRendererGLWidget::initializeGL(){
     shaderProgram.addShaderFromSourceFile(QGLShader::Fragment, ":/fragmentshader.fsh");
 
     shaderProgram.link();
-
-    updateVoxels();
-
     shaderProgram.bind();
 
-    shaderProgram.setUniformValue("modelView", modelView);
-    shaderProgram.setUniformValue("projection", projection);
-
-    shaderProgram.setAttributeArray( "vPosition", vertices.constData());
-    shaderProgram.setAttributeArray( "vColor", colors.constData());
-    shaderProgram.enableAttributeArray( "vPosition");
-    shaderProgram.enableAttributeArray( "vColor");
+    updateVoxels();
+    updateMatrices();
 }
 
 void PacketRendererGLWidget::paintGL(){
@@ -164,39 +165,61 @@ void PacketRendererGLWidget::updateMatrices(){
 void PacketRendererGLWidget::updateVoxels(){
 
     //length fixed for now (See constructor)
-    for( int currentVoxel = 0; currentVoxel < 2; currentVoxel++){
+    for( int currentVoxel = 0; currentVoxel < 4; currentVoxel++){
 
         float x = packetToRender.vXYZ[currentVoxel].x;
         float y = packetToRender.vXYZ[currentVoxel].y;
         float z = packetToRender.vXYZ[currentVoxel].z;
         float intensity = packetToRender.Intensities[0][currentVoxel];
 
-        vertices << QVector4D(x-0.5, y-0.5, z+0.5, 1.0) << QVector4D(x+ 0.5, y-0.5, z+0.5, 1.0) << QVector4D(x+ 0.5,  0.5, z+0.5, 1.0) // Front
-           << QVector4D(x+ 0.5,  y+0.5, z+0.5, 1.0) << QVector4D(x-0.5,  y+0.5, z+0.5, 1.0) << QVector4D(x-0.5, y-0.5, z+0.5, 1.0)
-           << QVector4D(x+ 0.5, y-0.5, z-0.5, 1.0) << QVector4D(x-0.5, y-0.5, z-0.5, 1.0) << QVector4D(x-0.5,  y+0.5, z-0.5, 1.0) // Back
-           << QVector4D(x-0.5,  y+0.5, z-0.5, 1.0) << QVector4D(x+ 0.5,  y+0.5, z-0.5, 1.0) << QVector4D(x+ 0.5, y-0.5, z-0.5, 1.0)
-           << QVector4D(x-0.5, y-0.5, z-0.5, 1.0) << QVector4D(x-0.5, y-0.5, z+0.5, 1.0) << QVector4D(x-0.5,  y+0.5, z+0.5, 1.0) // Left
-           << QVector4D(x-0.5,  y+0.5, z+0.5, 1.0) << QVector4D(x-0.5,  y+0.5, z-0.5, 1.0) << QVector4D(x-0.5, y-0.5, z-0.5, 1.0)
-           << QVector4D(x+ 0.5, y-0.5, z+0.5, 1.0) << QVector4D(x+ 0.5, y-0.5, z-0.5, 1.0) << QVector4D(x+ 0.5,  y+0.5, z-0.5, 1.0) // Right
-           << QVector4D(x+ 0.5,  y+0.5, z-0.5, 1.0) << QVector4D(x+ 0.5,  y+0.5, z+0.5, 1.0) << QVector4D(x+ 0.5, y-0.5, z+0.5, 1.0)
-           << QVector4D(x-0.5,  y+0.5, z+0.5, 1.0) << QVector4D(x+ 0.5,  y+0.5, z+0.5, 1.0) << QVector4D(x+ 0.5,  y+0.5, z-0.5, 1.0) // Top
-           << QVector4D(x+ 0.5,  y+0.5, z-0.5, 1.0) << QVector4D(x-0.5,  y+0.5, z-0.5, 1.0) << QVector4D(x-0.5,  y+0.5, z+0.5, 1.0)
-           << QVector4D(x-0.5, y-0.5, z-0.5, 1.0) << QVector4D(x+ 0.5, y-0.5, z-0.5, 1.0) << QVector4D(x+ 0.5, y-0.5, z+0.5, 1.0) // Bottom
-           << QVector4D(x+ 0.5, y-0.5, z+0.5, 1.0) << QVector4D(x-0.5, y-0.5, z+0.5, 1.0) << QVector4D(x-0.5, y-0.5, z-0.5, 1.0);
+        vertices << QVector3D(x-0.5, y-0.5, z+0.5) << QVector3D(x+ 0.5, y-0.5, z+0.5) << QVector3D(x+ 0.5,  y+0.5, z+0.5) // Front
+                << QVector3D(x+ 0.5,  y+0.5, z+0.5) << QVector3D(x-0.5,  y+0.5, z+0.5) << QVector3D(x-0.5, y-0.5, z+0.5)
+                << QVector3D(x+ 0.5, y-0.5, z-0.5) << QVector3D(x-0.5, y-0.5, z-0.5) << QVector3D(x-0.5,  y+0.5, z-0.5) // Back
+                << QVector3D(x-0.5,  y+0.5, z-0.5) << QVector3D(x+ 0.5,  y+0.5, z-0.5) << QVector3D(x+ 0.5, y-0.5, z-0.5)
+                << QVector3D(x-0.5, y-0.5, z-0.5) << QVector3D(x-0.5, y-0.5, z+0.5) << QVector3D(x-0.5,  y+0.5, z+0.5) // Left
+                << QVector3D(x-0.5,  y+0.5, z+0.5) << QVector3D(x-0.5,  y+0.5, z-0.5) << QVector3D(x-0.5, y-0.5, z-0.5)
+                << QVector3D(x+ 0.5, y-0.5, z+0.5) << QVector3D(x+ 0.5, y-0.5, z-0.5) << QVector3D(x+ 0.5,  y+0.5, z-0.5) // Right
+                << QVector3D(x+ 0.5,  y+0.5, z-0.5) << QVector3D(x+ 0.5,  y+0.5, z+0.5) << QVector3D(x+ 0.5, y-0.5, z+0.5)
+                << QVector3D(x-0.5,  y+0.5, z+0.5) << QVector3D(x+ 0.5,  y+0.5, z+0.5) << QVector3D(x+ 0.5,  y+0.5, z-0.5) // Top
+                << QVector3D(x+ 0.5,  y+0.5, z-0.5) << QVector3D(x-0.5,  y+0.5, z-0.5) << QVector3D(x-0.5,  y+0.5, z+0.5)
+                << QVector3D(x-0.5, y-0.5, z-0.5) << QVector3D(x+ 0.5, y-0.5, z-0.5) << QVector3D(x+ 0.5, y-0.5, z+0.5) // Bottom
+                << QVector3D(x+ 0.5, y-0.5, z+0.5) << QVector3D(x-0.5, y-0.5, z+0.5) << QVector3D(x-0.5, y-0.5, z-0.5);
+
 
         colors << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) // Front
-                       << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0)
-                       << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) // Back
-                       << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0)
-                       << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) // Left
-                       << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0)
-                       << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) // Right
-                       << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0)
-                       << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) // Top
-                       << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0)
-                       << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) // Bottom
-                       << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0);
+               << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0)
+               << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) // Back
+               << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0)
+               << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) // Left
+               << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0)
+               << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) // Right
+               << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0)
+               << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) // Top
+               << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0)
+               << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) // Bottom
+               << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0);
     }
+
+    printf( "%d\n", vertices.length());
+    for( int i = 0 ; i < vertices.length()-2; i = i + 3){
+
+        printf( "%f %f %f | %f %f %f | %f %f %f\n", vertices[i].x(), vertices[i].y(), vertices[i].z(),
+                                                    vertices[i+1].x(), vertices[i+1].y(), vertices[i+1].z(),
+                                                    vertices[i+2].x(), vertices[i+2].y(), vertices[i+2].z());
+    }
+
+    printf( "%d\n", colors.length());
+    for( int i = 0 ; i < colors.length()-2; i = i + 3){
+
+        printf( "%f %f %f | %f %f %f | %f %f %f\n", colors[i].x(), colors[i].y(), colors[i].z(),
+                                                    colors[i+1].x(), colors[i+1].y(), colors[i+1].z(),
+                                                    colors[i+2].x(), colors[i+2].y(), colors[i+2].z());
+    }
+
+    shaderProgram.setAttributeArray( "vPosition", vertices.constData());
+    shaderProgram.setAttributeArray( "vColor", colors.constData());
+    shaderProgram.enableAttributeArray( "vPosition");
+    shaderProgram.enableAttributeArray( "vColor");
 }
 
 void PacketRendererGLWidget::setPacket( Packet packet){
