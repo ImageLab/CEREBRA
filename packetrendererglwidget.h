@@ -134,6 +134,8 @@ private:
     //auxiliary variables. will be removed later
     QVector<QVector3D> fileVertexPos;
     QVector<float> intensities;
+    QVector<QVector2D> pairs;
+    QVector<float> edgeIntensities;
 };
 
 #endif // PACKETRENDERERGLWIDGET_H

@@ -3,5 +3,7 @@
         <file>vertexshader.vsh</file>
         <file>fragmentshader.fsh</file>
         <file>voxels.txt</file>
+        <file>arclengths.txt</file>
+        <file>neighbors.txt</file>
     </qresource>
 </RCC>
