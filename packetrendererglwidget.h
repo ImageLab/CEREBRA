@@ -43,6 +43,9 @@ private:
 
     /**
      * @brief resizeGL called when the size of the window has changed
+     * It is suggested that perspective matrix should be calculated here.
+     * This class does not provide extra variable to store as the
+     * parameters of the perspective matrix.
      * @param width new width of the screen
      * @param height new height of the screen
      */
@@ -86,8 +89,25 @@ public:
 //auxiliary functions
 private:
 
+    /**
+     * @brief updateMatrices calculates new value of modelView matrix
+     * by using the variables alpha, beta, and distance. Updates
+     * modelview matrix and perspective matrix on the shader side, if any
+     */
     void updateMatrices();
-    void updateVoxels();
+
+    /**
+     * @brief updateAttributeArrays updates all necessary arrays
+     * that are passed to gpu. It basically uses the information
+     * obtain from packetToRender
+     */
+    void updateAttributeArrays();
+
+    /**
+     * @brief readVoxels is just a testing function
+     * It reads specifically designed txt file
+     * to obtain voxel position, intensity etc.
+     */
     void readVoxels();
 
 private:
@@ -96,22 +116,22 @@ private:
     QMatrix4x4 projection;
     QMatrix4x4 modelView;
     QGLShaderProgram shaderProgram;
-    QVector<QVector4D> vertices;
-    QVector<QVector4D> colors;
-    QVector<QVector2D> textureCoordinates;
+    QVector<QVector4D> vertices; //passed to gpu
+    QVector<QVector4D> colors; //passed to gpu
+    QVector<QVector2D> textureCoordinates; //passed to gpu
 
+    /**
+     * To handle rotation, zooming etc.
+     */
     QPoint lastMousePosition;
     bool leftPressed;
     const GLfloat maxZoomIn = 0.2;
     const GLfloat maxZoomOut = 100;
-
-    /**
-     * Qt Tutorial variables
-     */
     double alpha; //rotate around y axis
     double beta; //rotate around x axis
     double distance;
 
+    //auxiliary variables. will be removed later
     QVector<QVector3D> fileVertexPos;
     QVector<float> intensities;
 };

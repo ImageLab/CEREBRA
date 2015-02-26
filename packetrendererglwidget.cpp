@@ -9,36 +9,9 @@ PacketRendererGLWidget::PacketRendererGLWidget( QWidget *parent) : QGLWidget( pa
     projection.setToIdentity();
     modelView.setToIdentity();
 
-    alpha = 25;
-    beta = -25;
-    distance = 2.5;
-
-    //sample voxel
-    //    packetToRender.vXYZ = new libsimple::Packet::Point3D[4];
-
-    //    packetToRender.vXYZ[0].x = 0;
-    //    packetToRender.vXYZ[0].y = 0;
-    //    packetToRender.vXYZ[0].z = 0;
-
-    //    packetToRender.vXYZ[1].x = 1;
-    //    packetToRender.vXYZ[1].y = 1;
-    //    packetToRender.vXYZ[1].z = 1;
-
-    //    packetToRender.vXYZ[2].x = 2;
-    //    packetToRender.vXYZ[2].y = 2;
-    //    packetToRender.vXYZ[2].z = 2;
-
-    //    packetToRender.vXYZ[3].x = 2;
-    //    packetToRender.vXYZ[3].y = 5;
-    //    packetToRender.vXYZ[3].z = 5;
-
-    //    packetToRender.Intensities = new double*[1];
-    //    packetToRender.Intensities[0] = new double[4];
-
-    //    packetToRender.Intensities[0][0] = 0.77;
-    //    packetToRender.Intensities[0][1] = 0.3;
-    //    packetToRender.Intensities[0][2] = 0.1;
-    //    packetToRender.Intensities[0][3] = 0.9;
+    alpha = 0;
+    beta = 0;
+    distance = 60;
 
     readVoxels();
 }
@@ -69,7 +42,7 @@ void PacketRendererGLWidget::initializeGL(){
     shaderProgram.link();
     shaderProgram.bind();
 
-    updateVoxels();
+    updateAttributeArrays();
     updateMatrices();
 
     shaderProgram.enableAttributeArray( "vPosition");
@@ -168,7 +141,11 @@ void PacketRendererGLWidget::updateMatrices(){
     updateGL();
 }
 
-void PacketRendererGLWidget::updateVoxels(){
+void PacketRendererGLWidget::updateAttributeArrays(){
+
+    vertices.clear();
+    colors.clear();
+    textureCoordinates.clear();
 
     //length fixed for now (See constructor)
     for( int currentVoxel = 0; currentVoxel < fileVertexPos.length(); currentVoxel++){
@@ -176,7 +153,7 @@ void PacketRendererGLWidget::updateVoxels(){
         float x = packetToRender.vXYZ[currentVoxel].x;
         float y = packetToRender.vXYZ[currentVoxel].y;
         float z = packetToRender.vXYZ[currentVoxel].z;
-        float intensity = packetToRender.Intensities[0][currentVoxel];
+        float intensity = (float)packetToRender.Intensities[0][currentVoxel];
 
         vertices << QVector4D(x-0.2, y-0.2, z+0.2, 1.0) << QVector4D(x+ 0.2, y-0.2, z+0.2, 1.0) << QVector4D(x+ 0.2,  y+0.2, z+0.2, 1.0) // Front
                 << QVector4D(x+ 0.2,  y+0.2, z+0.2, 1.0) << QVector4D(x-0.2,  y+0.2, z+0.2, 1.0) << QVector4D(x-0.2, y-0.2, z+0.2, 1.0)
@@ -215,11 +192,17 @@ void PacketRendererGLWidget::setPacket( Packet packet){
     //copy constructor here
     packetToRender = packet;
 
-    updateVoxels();
+    updateAttributeArrays();
 }
 
 void PacketRendererGLWidget::readVoxels(){
 
+    //here we assume that the file contains
+    //2 consecutive lines. in the first line
+    //there is position information (x y z)
+    //and in the following line there is the
+    //intensity value of that voxel.
+    //it is just a parser to train the rendering.
     QFile file(":/voxels.txt");
 
     if(!file.open(QIODevice::ReadOnly))
@@ -254,6 +237,9 @@ void PacketRendererGLWidget::readVoxels(){
             max = intensities[i];
     }
 
+    for( int i = 0; i < intensities.length(); i++)
+        intensities[i] = (intensities[i] - min)/(max - min);
+
     packetToRender.vXYZ = new libsimple::Packet::Point3D[fileVertexPos.length()];
     packetToRender.Intensities = new double*[1];
     packetToRender.Intensities[0] = new double[intensities.length()];
@@ -265,5 +251,6 @@ void PacketRendererGLWidget::readVoxels(){
         packetToRender.vXYZ[i].z = fileVertexPos[i].z();
         packetToRender.Intensities[0][i] = intensities[i];
     }
+
     file.close();
 }
