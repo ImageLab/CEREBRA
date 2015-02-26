@@ -111,6 +111,8 @@ private:
     void readVoxels();
     void readImage();
     void readEdges();
+    void readEdgeIntensities();
+
 
 private:
 
@@ -121,8 +123,7 @@ private:
     QVector<QVector4D> vertices; //passed to gpu
     QVector<QVector4D> colors; //passed to gpu
     QVector<QVector2D> textureCoordinates; //passed to gpu
-    QVector<QVector2D> pairs;
-    QVector<float> edgeIntensities;
+
 
     /**
      * To handle rotation, zooming etc.
@@ -138,7 +139,10 @@ private:
     //auxiliary variables. will be removed later
     QVector<QVector3D> fileVertexPos;
     QVector<float> intensities;   
-
+    QVector<QVector2D> pairs;
+    QVector<float> edgeIntensities;
+    QVector<QVector4D> EdgePos;
+    QVector<QVector4D> edgeColors;
 };
 
 #endif // PACKETRENDERERGLWIDGET_H
