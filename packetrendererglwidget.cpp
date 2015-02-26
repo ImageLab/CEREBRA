@@ -14,6 +14,7 @@ PacketRendererGLWidget::PacketRendererGLWidget( QWidget *parent) : QGLWidget( pa
     distance = 60;
 
     readVoxels();
+    readImage();
 }
 
 PacketRendererGLWidget::~PacketRendererGLWidget()
@@ -253,4 +254,22 @@ void PacketRendererGLWidget::readVoxels(){
     }
 
     file.close();
+}
+
+void PacketRendererGLWidget::readImage(){
+
+//    QImage img;
+//    if ( img.load(":/reference.png")) {
+
+//        QImage newimg(10*img.width(), 10*img.height(), QImage::Format_RGB32);
+
+//        for( int i = 0; i < 10; i++)
+//            for( int x = 0; x < img.width(); x++)
+//                for( int j = 0; j < 10; j++)
+//                    for( int y = 0; y < img.height(); y++){
+//                        newimg.setPixel(i*img.width() + x, j*img.height() + y, img.pixel(x, y));
+//                    }
+
+//        newimg.save("abc.png", "PNG");
+//    }
 }

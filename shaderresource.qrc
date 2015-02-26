@@ -3,7 +3,11 @@
         <file>vertexshader.vsh</file>
         <file>fragmentshader.fsh</file>
         <file>voxels.txt</file>
+<<<<<<< HEAD
         <file>arclengths.txt</file>
         <file>neighbors.txt</file>
+=======
+        <file>reference.png</file>
+>>>>>>> origin/master
     </qresource>
 </RCC>
