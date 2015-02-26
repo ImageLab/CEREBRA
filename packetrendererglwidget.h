@@ -137,7 +137,8 @@ private:
 
     //auxiliary variables. will be removed later
     QVector<QVector3D> fileVertexPos;
-    QVector<float> intensities;   
+    QVector<float> intensities;
+    QVector< QVector<float>> contIntensities;
 
 };
 

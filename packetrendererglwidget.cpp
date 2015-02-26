@@ -254,6 +254,31 @@ void PacketRendererGLWidget::readVoxels(){
     }
 
     file.close();
+
+    QFile contIntensityFile(":/intensities.txt");
+
+    if(!contIntensityFile.open(QIODevice::ReadOnly))
+    {
+        qDebug() << "error opening file: " << file.error();
+        return;
+    }
+
+    QTextStream instream2(&contIntensityFile);
+    QString intensitiesOfVoxel;
+
+    while( (intensitiesOfVoxel = instream2.readLine()) != NULL){
+
+        QRegExp rx("[,]");
+        QStringList list = intensitiesOfVoxel.split(rx, QString::SkipEmptyParts);
+        QVector<float> intensityVectorOfVoxel;
+
+        for( int i = 0; i < list.length(); i++){
+
+            intensityVectorOfVoxel << list.at(i).toFloat();
+        }
+
+        contIntensities << intensityVectorOfVoxel;
+    }
 }
 
 void PacketRendererGLWidget::readImage(){
