@@ -109,6 +109,7 @@ private:
      * to obtain voxel position, intensity etc.
      */
     void readVoxels();
+    void readImage();
 
 private:
 
@@ -134,6 +135,7 @@ private:
     //auxiliary variables. will be removed later
     QVector<QVector3D> fileVertexPos;
     QVector<float> intensities;
+
 };
 
 #endif // PACKETRENDERERGLWIDGET_H

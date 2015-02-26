@@ -3,5 +3,6 @@
         <file>vertexshader.vsh</file>
         <file>fragmentshader.fsh</file>
         <file>voxels.txt</file>
+        <file>reference.png</file>
     </qresource>
 </RCC>
