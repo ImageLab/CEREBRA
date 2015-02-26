@@ -15,6 +15,8 @@ PacketRendererGLWidget::PacketRendererGLWidget( QWidget *parent) : QGLWidget( pa
 
     readVoxels();
     readImage();
+    readEdges();
+    readEdgeIntensities();
 }
 
 PacketRendererGLWidget::~PacketRendererGLWidget()
@@ -55,6 +57,14 @@ void PacketRendererGLWidget::paintGL(){
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+
+    shaderProgram.setAttributeArray( "vPosition", EdgePos.constData());
+    shaderProgram.setAttributeArray( "vColor", edgeColors.constData());
+
+    glDrawArrays(GL_LINES, 0, EdgePos.size());
+
+    shaderProgram.setAttributeArray( "vPosition", vertices.constData());
+    shaderProgram.setAttributeArray( "vColor", colors.constData());
 }
 
 void PacketRendererGLWidget::resizeGL( int width, int height){
@@ -301,8 +311,60 @@ void PacketRendererGLWidget::readImage(){
 
 void PacketRendererGLWidget::readEdges(){
 
-    //QFile file(":/neighbor.txt");
+    QFile file(":/neighbors.txt");
 
+    if(!file.open(QIODevice::ReadOnly))
+    {
+        qDebug() << "error opening file: " << file.error();
+        return;
+    }
 
+    QTextStream instream(&file);
+    QString voxelLine;
+    int count = 0;
+    while( (voxelLine = instream.readLine()) != NULL){
+
+        QRegExp rx("[ ]");
+        QStringList list = voxelLine.split(rx, QString::SkipEmptyParts);
+       // std::cout << list.length()<< std::endl;
+        for(int i=0; i< list.length();i++){
+
+            pairs << QVector2D(count, list[i].toInt()-1);
+
+        }
+        count++;
+
+    }
+       // for(int i=0; i< pairs.size();i++)
+           // std::cout << pairs[i].x() << "," << pairs[i].y() << std::endl;
 
 }
+void PacketRendererGLWidget::readEdgeIntensities(){
+
+    QFile file(":/arclengths.txt");
+
+    if(!file.open(QIODevice::ReadOnly))
+    {
+        qDebug() << "error opening file: " << file.error();
+        return;
+    }
+
+    QTextStream instream(&file);
+    QString arcLength;
+
+    while( (arcLength = instream.readLine()) != NULL){
+
+        edgeIntensities << arcLength.toFloat();
+
+    }
+
+    for(int i=0; i< pairs.length(); i++){
+
+        EdgePos << QVector4D(fileVertexPos.at(pairs.at(i).x()),1.0) <<  QVector4D(fileVertexPos.at(pairs.at(i).y()),1.0);
+        edgeColors << QVector4D(1,1,1,1) << QVector4D(1,1,1,1);
+
+    }
+}
+
+
+
