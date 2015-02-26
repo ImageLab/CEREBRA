@@ -273,3 +273,11 @@ void PacketRendererGLWidget::readImage(){
 //        newimg.save("abc.png", "PNG");
 //    }
 }
+
+void PacketRendererGLWidget::readEdges(){
+
+    //QFile file(":/neighbor.txt");
+
+
+
+}
