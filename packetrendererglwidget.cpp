@@ -3,9 +3,6 @@
 
 PacketRendererGLWidget::PacketRendererGLWidget( QWidget *parent) : QGLWidget( parent)
 {
-
-    leftPressed = false;
-
     projection.setToIdentity();
     modelView.setToIdentity();
 
@@ -17,12 +14,13 @@ PacketRendererGLWidget::PacketRendererGLWidget( QWidget *parent) : QGLWidget( pa
     readImage();
     readEdges();
     readEdgeIntensities();
+
+    QTimer *aTimer = new QTimer;
+    connect(aTimer,SIGNAL(timeout()),SLOT(animate()));
+    aTimer->start(80); //updating per this amount of milliseconds
 }
 
-PacketRendererGLWidget::~PacketRendererGLWidget()
-{
-
-}
+PacketRendererGLWidget::~PacketRendererGLWidget(){}
 
 QSize PacketRendererGLWidget::sizeHint() const{
 
@@ -33,10 +31,11 @@ void PacketRendererGLWidget::initializeGL(){
 
     projection.setToIdentity();
     modelView.setToIdentity();
+    textureOffset = QVector2D(0.0, 0.0);
 
     //gl attributes
     glEnable( GL_DEPTH_TEST);
-    qglClearColor( QColor( Qt::black));
+    qglClearColor( QColor( Qt::gray));
 
     //link and bind shader
     shaderProgram.addShaderFromSourceFile(QGLShader::Vertex, ":/vertexshader.vsh");
@@ -48,8 +47,15 @@ void PacketRendererGLWidget::initializeGL(){
     updateAttributeArrays();
     updateMatrices();
 
+    texture = bindTexture(QPixmap("texture.png"));
+    shaderProgram.setUniformValue("textureOffset", textureOffset);
+    shaderProgram.setUniformValue("texture", 0);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
     shaderProgram.enableAttributeArray( "vPosition");
-    shaderProgram.enableAttributeArray( "vColor");
+    //shaderProgram.enableAttributeArray( "vColor");
+    shaderProgram.enableAttributeArray("vTextureCoordinate");
+
 }
 
 void PacketRendererGLWidget::paintGL(){
@@ -58,23 +64,23 @@ void PacketRendererGLWidget::paintGL(){
 
     glDrawArrays(GL_TRIANGLES, 0, vertices.size());
 
-    shaderProgram.setAttributeArray( "vPosition", EdgePos.constData());
-    shaderProgram.setAttributeArray( "vColor", edgeColors.constData());
+    //shaderProgram.setAttributeArray( "vPosition", EdgePos.constData());
+    //shaderProgram.setAttributeArray( "vColor", edgeColors.constData());
 
-    glDrawArrays(GL_LINES, 0, EdgePos.size());
+    //glDrawArrays(GL_LINES, 0, EdgePos.size());
 
-    shaderProgram.setAttributeArray( "vPosition", vertices.constData());
-    shaderProgram.setAttributeArray( "vColor", colors.constData());
+    //shaderProgram.setAttributeArray( "vPosition", vertices.constData());
+    //shaderProgram.setAttributeArray( "vTextureCoordinate", textureCoordinates.constData());
 }
 
 void PacketRendererGLWidget::resizeGL( int width, int height){
 
-    if (height == 0) {
+    if (height == 0)
         height = 1;
-    }
 
     projection.setToIdentity();
     projection.perspective( 60.0, (double)width/(double)height, 0.001, 1000);
+
     glViewport( 0, 0, width, height);
 
     updateMatrices();
@@ -82,25 +88,20 @@ void PacketRendererGLWidget::resizeGL( int width, int height){
 
 void PacketRendererGLWidget::mousePressEvent( QMouseEvent *event){
 
-    if( event->button() == Qt::LeftButton){
+    if( event->button() == Qt::LeftButton)
         lastMousePosition = event->pos();
-        leftPressed = true;
-    }
 
     event->accept();
 }
 
 void PacketRendererGLWidget::mouseReleaseEvent( QMouseEvent *event){
 
-    if( event->button() == Qt::LeftButton)
-        leftPressed = false;
-
     event->accept();
 }
 
 void PacketRendererGLWidget::mouseMoveEvent( QMouseEvent *event){
 
-    if( event->buttons() == Qt::LeftButton && leftPressed){
+    if( event->buttons() & Qt::LeftButton){
 
         float dx = event->x() - lastMousePosition.x();
         float dy = event->y() - lastMousePosition.y();
@@ -126,11 +127,10 @@ void PacketRendererGLWidget::wheelEvent( QWheelEvent *event){
     int delta = event->delta();
     if (event->orientation() == Qt::Vertical) {
 
-        if (delta < 0) {
+        if (delta < 0)
             distance *= 1.1;
-        } else if (delta > 0) {
+        else if (delta > 0)
             distance *= 0.9;
-        }
 
         updateMatrices();
     }
@@ -179,7 +179,6 @@ void PacketRendererGLWidget::updateAttributeArrays(){
                 << QVector4D(x-0.35, y-0.35, z-0.35, 1.0) << QVector4D(x+ 0.35, y-0.35, z-0.35, 1.0) << QVector4D(x+ 0.35, y-0.35, z+0.35, 1.0) // Bottom
                 << QVector4D(x+ 0.35, y-0.35, z+0.35, 1.0) << QVector4D(x-0.35, y-0.35, z+0.35, 1.0) << QVector4D(x-0.35, y-0.35, z-0.35, 1.0);
 
-
         colors << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) // Front
                << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0)
                << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) // Back
@@ -192,10 +191,39 @@ void PacketRendererGLWidget::updateAttributeArrays(){
                << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0)
                << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) // Bottom
                << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0);
+
+        //first one is fake data to be able to demonstrate the animation
+        //second one is the real data (load reference.png for that)
+        textureCoordinates << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length())) << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length())) << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length())) // Front
+                          << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length())) << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length())) << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length()))
+                          << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length())) << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length())) << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length())) // Back
+                          << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length())) << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length())) << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length()))
+                          << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length())) << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length())) << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length())) // Left
+                          << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length())) << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length())) << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length()))
+                          << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length())) << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length())) << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length())) // Right
+                          << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length())) << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length())) << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length()))
+                          << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length())) << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length())) << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length())) // Top
+                          << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length())) << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length())) << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length()))
+                          << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length())) << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length())) << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length())) // Bottom
+                          << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length())) << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length())) << QVector2D(0, (float)(3*currentVoxel)/(float)(3*fileVertexPos.length()));
+
+//        textureCoordinates << QVector2D(0, intensity) << QVector2D(0, intensity) << QVector2D(0, intensity) // Front
+//                          << QVector2D(0, intensity) << QVector2D(0, intensity) << QVector2D(0, intensity)
+//                          << QVector2D(0, intensity) << QVector2D(0, intensity) << QVector2D(0, intensity) // Back
+//                          << QVector2D(0, intensity) << QVector2D(0, intensity) << QVector2D(0, intensity)
+//                          << QVector2D(0, intensity) << QVector2D(0, intensity) << QVector2D(0, intensity) // Left
+//                          << QVector2D(0, intensity) << QVector2D(0, intensity) << QVector2D(0, intensity)
+//                          << QVector2D(0, intensity) << QVector2D(0, intensity) << QVector2D(0, intensity) // Right
+//                          << QVector2D(0, intensity) << QVector2D(0, intensity) << QVector2D(0, intensity)
+//                          << QVector2D(0, intensity) << QVector2D(0, intensity) << QVector2D(0, intensity) // Top
+//                          << QVector2D(0, intensity) << QVector2D(0, intensity) << QVector2D(0, intensity)
+//                          << QVector2D(0, intensity) << QVector2D(0, intensity) << QVector2D(0, intensity) // Bottom
+//                          << QVector2D(0, intensity) << QVector2D(0, intensity) << QVector2D(0, intensity);
     }
 
     shaderProgram.setAttributeArray( "vPosition", vertices.constData());
-    shaderProgram.setAttributeArray( "vColor", colors.constData());
+    //shaderProgram.setAttributeArray( "vColor", colors.constData());
+    shaderProgram.setAttributeArray( "vTextureCoordinate", textureCoordinates.constData());
 }
 
 void PacketRendererGLWidget::setPacket( Packet packet){
@@ -232,7 +260,7 @@ void PacketRendererGLWidget::readVoxels(){
         QRegExp rx("[ ]");
         QStringList list = pos.split(rx, QString::SkipEmptyParts);
         fileVertexPos << QVector3D( list.at(0).toFloat(), list.at(1).toFloat(), list.at(2).toFloat());
-        intensities << intensityString.toFloat();
+        fileVoxelIntensities << intensityString.toFloat();
     }
 
     //normalize intensities
@@ -240,27 +268,27 @@ void PacketRendererGLWidget::readVoxels(){
     float min = std::numeric_limits<float>::max();
 
     //find min-max values
-    for( int i = 0; i < intensities.length(); i++){
+    for( int i = 0; i < fileVoxelIntensities.length(); i++){
 
-        if( intensities[i] < min)
-            min = intensities[i];
-        if( intensities[i] > max)
-            max = intensities[i];
+        if( fileVoxelIntensities[i] < min)
+            min = fileVoxelIntensities[i];
+        if( fileVoxelIntensities[i] > max)
+            max = fileVoxelIntensities[i];
     }
 
-    for( int i = 0; i < intensities.length(); i++)
-        intensities[i] = (intensities[i] - min)/(max - min);
+    for( int i = 0; i < fileVoxelIntensities.length(); i++)
+        fileVoxelIntensities[i] = (fileVoxelIntensities[i] - min)/(max - min);
 
     packetToRender.vXYZ = new libsimple::Packet::Point3D[fileVertexPos.length()];
     packetToRender.Intensities = new double*[1];
-    packetToRender.Intensities[0] = new double[intensities.length()];
+    packetToRender.Intensities[0] = new double[fileVoxelIntensities.length()];
 
     for( int i = 0; i < fileVertexPos.length(); i++){
 
         packetToRender.vXYZ[i].x = fileVertexPos[i].x();
         packetToRender.vXYZ[i].y = fileVertexPos[i].y();
         packetToRender.vXYZ[i].z = fileVertexPos[i].z();
-        packetToRender.Intensities[0][i] = intensities[i];
+        packetToRender.Intensities[0][i] = fileVoxelIntensities[i];
     }
 
     file.close();
@@ -313,15 +341,15 @@ void PacketRendererGLWidget::readImage(){
                 if(yPos <= 0) yPos = 0;
                 QRgb intensityOfVoxelInTime = img.pixel(5, yPos);
 
-                texture.setPixel(3*time, 3*currentVoxel, intensityOfVoxelInTime);
-                texture.setPixel(3*time+1, 3*currentVoxel, intensityOfVoxelInTime);
-                texture.setPixel(3*time+2, 3*currentVoxel, intensityOfVoxelInTime);
-                texture.setPixel(3*time, 3*currentVoxel+1, intensityOfVoxelInTime);
-                texture.setPixel(3*time+1, 3*currentVoxel+1, intensityOfVoxelInTime);
-                texture.setPixel(3*time+2, 3*currentVoxel+1, intensityOfVoxelInTime);
-                texture.setPixel(3*time, 3*currentVoxel+2, intensityOfVoxelInTime);
-                texture.setPixel(3*time+1, 3*currentVoxel+2, intensityOfVoxelInTime);
-                texture.setPixel(3*time+2, 3*currentVoxel+2, intensityOfVoxelInTime);
+                texture.setPixel( 3*time, 3*currentVoxel, intensityOfVoxelInTime);
+                texture.setPixel( 3*time+1, 3*currentVoxel, intensityOfVoxelInTime);
+                texture.setPixel( 3*time+2, 3*currentVoxel, intensityOfVoxelInTime);
+                texture.setPixel( 3*time, 3*currentVoxel+1, intensityOfVoxelInTime);
+                texture.setPixel( 3*time+1, 3*currentVoxel+1, intensityOfVoxelInTime);
+                texture.setPixel( 3*time+2, 3*currentVoxel+1, intensityOfVoxelInTime);
+                texture.setPixel( 3*time, 3*currentVoxel+2, intensityOfVoxelInTime);
+                texture.setPixel( 3*time+1, 3*currentVoxel+2, intensityOfVoxelInTime);
+                texture.setPixel( 3*time+2, 3*currentVoxel+2, intensityOfVoxelInTime);
             }
 
         texture.save("texture.png", "PNG");
@@ -345,16 +373,11 @@ void PacketRendererGLWidget::readEdges(){
 
         QRegExp rx("[ ]");
         QStringList list = voxelLine.split(rx, QString::SkipEmptyParts);
-       // std::cout << list.length()<< std::endl;
-        for(int i=0; i< list.length();i++){
-
+        for(int i=0; i< list.length();i++)
             pairs << QVector2D(count, list[i].toInt()-1);
 
-        }
         count++;
-
     }
-
 }
 void PacketRendererGLWidget::readEdgeIntensities(){
 
@@ -369,11 +392,9 @@ void PacketRendererGLWidget::readEdgeIntensities(){
     QTextStream instream(&file);
     QString arcLength;
 
-    while( (arcLength = instream.readLine()) != NULL){
-
+    while( (arcLength = instream.readLine()) != NULL)
         edgeIntensities << arcLength.toFloat();
 
-    }
     float max = std::numeric_limits<float>::min();
     float min = std::numeric_limits<float>::max();
 
@@ -385,8 +406,6 @@ void PacketRendererGLWidget::readEdgeIntensities(){
         if( edgeIntensities[i] > max)
             max = edgeIntensities[i];
     }
-    std::cout << "max: " << max << std::endl;
-    std::cout << "min: " << min << std::endl;
 
     //normalize Edge intensities
     for( int i = 0; i < edgeIntensities.length(); i++){
@@ -395,12 +414,21 @@ void PacketRendererGLWidget::readEdgeIntensities(){
     }
 
     for(int i=0; i< pairs.length(); i++){
-
         if(edgeIntensities[i] > 0.5){
 
             EdgePos << QVector4D(fileVertexPos.at(pairs.at(i).x()),1.0) <<  QVector4D(fileVertexPos.at(pairs.at(i).y()),1.0);
-
             edgeColors << QVector4D(edgeIntensities[i], 1-edgeIntensities[i], 0, 1.0) << QVector4D(edgeIntensities[i], 1-edgeIntensities[i], 0, 1.0);
         }
     }
+}
+
+void PacketRendererGLWidget::animate(){
+
+    float offset = textureOffset.x() + ((float)1/(float)contIntensities.at(0).length());
+    if( offset > 1)
+        offset = 0;
+
+    textureOffset = QVector2D( offset, 0);
+    shaderProgram.setUniformValue("textureOffset", textureOffset);
+    updateGL();
 }

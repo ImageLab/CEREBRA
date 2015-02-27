@@ -117,35 +117,37 @@ private:
 private:
 
     Packet packetToRender;
-    QMatrix4x4 projection;
-    QMatrix4x4 modelView;
+
+    //shader variables
     QGLShaderProgram shaderProgram;
     QVector<QVector4D> vertices; //passed to gpu
     QVector<QVector4D> colors; //passed to gpu
     QVector<QVector2D> textureCoordinates; //passed to gpu
+    QVector2D textureOffset;
+    GLuint texture;
+    QMatrix4x4 projection;
+    QMatrix4x4 modelView;
 
 
     /**
      * To handle rotation, zooming etc.
      */
     QPoint lastMousePosition;
-    bool leftPressed;
-    const GLfloat maxZoomIn = 0.2;
-    const GLfloat maxZoomOut = 100;
     double alpha; //rotate around y axis
     double beta; //rotate around x axis
     double distance;
 
     //auxiliary variables. will be removed later
     QVector<QVector3D> fileVertexPos;
-
-    QVector<float> intensities;
+    QVector<float> fileVoxelIntensities;
     QVector< QVector<float>> contIntensities;
-
     QVector<QVector2D> pairs;
     QVector<float> edgeIntensities;
     QVector<QVector4D> EdgePos;
     QVector<QVector4D> edgeColors;
+
+private slots:
+     void animate();
 };
 
 #endif // PACKETRENDERERGLWIDGET_H
