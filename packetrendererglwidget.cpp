@@ -166,18 +166,18 @@ void PacketRendererGLWidget::updateAttributeArrays(){
         float z = packetToRender.vXYZ[currentVoxel].z;
         float intensity = (float)packetToRender.Intensities[0][currentVoxel];
 
-        vertices << QVector4D(x-0.2, y-0.2, z+0.2, 1.0) << QVector4D(x+ 0.2, y-0.2, z+0.2, 1.0) << QVector4D(x+ 0.2,  y+0.2, z+0.2, 1.0) // Front
-                << QVector4D(x+ 0.2,  y+0.2, z+0.2, 1.0) << QVector4D(x-0.2,  y+0.2, z+0.2, 1.0) << QVector4D(x-0.2, y-0.2, z+0.2, 1.0)
-                << QVector4D(x+ 0.2, y-0.2, z-0.2, 1.0) << QVector4D(x-0.2, y-0.2, z-0.2, 1.0) << QVector4D(x-0.2,  y+0.2, z-0.2, 1.0) // Back
-                << QVector4D(x-0.2,  y+0.2, z-0.2, 1.0) << QVector4D(x+ 0.2,  y+0.2, z-0.2, 1.0) << QVector4D(x+ 0.2, y-0.2, z-0.2, 1.0)
-                << QVector4D(x-0.2, y-0.2, z-0.2, 1.0) << QVector4D(x-0.2, y-0.2, z+0.2, 1.0) << QVector4D(x-0.2,  y+0.2, z+0.2, 1.0) // Left
-                << QVector4D(x-0.2,  y+0.2, z+0.2, 1.0) << QVector4D(x-0.2,  y+0.2, z-0.2, 1.0) << QVector4D(x-0.2, y-0.2, z-0.2, 1.0)
-                << QVector4D(x+ 0.2, y-0.2, z+0.2, 1.0) << QVector4D(x+ 0.2, y-0.2, z-0.2, 1.0) << QVector4D(x+ 0.2,  y+0.2, z-0.2, 1.0) // Right
-                << QVector4D(x+ 0.2,  y+0.2, z-0.2, 1.0) << QVector4D(x+ 0.2,  y+0.2, z+0.2, 1.0) << QVector4D(x+ 0.2, y-0.2, z+0.2, 1.0)
-                << QVector4D(x-0.2,  y+0.2, z+0.2, 1.0) << QVector4D(x+ 0.2,  y+0.2, z+0.2, 1.0) << QVector4D(x+ 0.2,  y+0.2, z-0.2, 1.0) // Top
-                << QVector4D(x+ 0.2,  y+0.2, z-0.2, 1.0) << QVector4D(x-0.2,  y+0.2, z-0.2, 1.0) << QVector4D(x-0.2,  y+0.2, z+0.2, 1.0)
-                << QVector4D(x-0.2, y-0.2, z-0.2, 1.0) << QVector4D(x+ 0.2, y-0.2, z-0.2, 1.0) << QVector4D(x+ 0.2, y-0.2, z+0.2, 1.0) // Bottom
-                << QVector4D(x+ 0.2, y-0.2, z+0.2, 1.0) << QVector4D(x-0.2, y-0.2, z+0.2, 1.0) << QVector4D(x-0.2, y-0.2, z-0.2, 1.0);
+        vertices << QVector4D(x-0.35, y-0.35, z+0.35, 1.0) << QVector4D(x+ 0.35, y-0.35, z+0.35, 1.0) << QVector4D(x+ 0.35,  y+0.35, z+0.35, 1.0) // Front
+                << QVector4D(x+ 0.35,  y+0.35, z+0.35, 1.0) << QVector4D(x-0.35,  y+0.35, z+0.35, 1.0) << QVector4D(x-0.35, y-0.35, z+0.35, 1.0)
+                << QVector4D(x+ 0.35, y-0.35, z-0.35, 1.0) << QVector4D(x-0.35, y-0.35, z-0.35, 1.0) << QVector4D(x-0.35,  y+0.35, z-0.35, 1.0) // Back
+                << QVector4D(x-0.35,  y+0.35, z-0.35, 1.0) << QVector4D(x+ 0.35,  y+0.35, z-0.35, 1.0) << QVector4D(x+ 0.35, y-0.35, z-0.35, 1.0)
+                << QVector4D(x-0.35, y-0.35, z-0.35, 1.0) << QVector4D(x-0.35, y-0.35, z+0.35, 1.0) << QVector4D(x-0.35,  y+0.35, z+0.35, 1.0) // Left
+                << QVector4D(x-0.35,  y+0.35, z+0.35, 1.0) << QVector4D(x-0.35,  y+0.35, z-0.35, 1.0) << QVector4D(x-0.35, y-0.35, z-0.35, 1.0)
+                << QVector4D(x+ 0.35, y-0.35, z+0.35, 1.0) << QVector4D(x+ 0.35, y-0.35, z-0.35, 1.0) << QVector4D(x+ 0.35,  y+0.35, z-0.35, 1.0) // Right
+                << QVector4D(x+ 0.35,  y+0.35, z-0.35, 1.0) << QVector4D(x+ 0.35,  y+0.35, z+0.35, 1.0) << QVector4D(x+ 0.35, y-0.35, z+0.35, 1.0)
+                << QVector4D(x-0.35,  y+0.35, z+0.35, 1.0) << QVector4D(x+ 0.35,  y+0.35, z+0.35, 1.0) << QVector4D(x+ 0.35,  y+0.35, z-0.35, 1.0) // Top
+                << QVector4D(x+ 0.35,  y+0.35, z-0.35, 1.0) << QVector4D(x-0.35,  y+0.35, z-0.35, 1.0) << QVector4D(x-0.35,  y+0.35, z+0.35, 1.0)
+                << QVector4D(x-0.35, y-0.35, z-0.35, 1.0) << QVector4D(x+ 0.35, y-0.35, z-0.35, 1.0) << QVector4D(x+ 0.35, y-0.35, z+0.35, 1.0) // Bottom
+                << QVector4D(x+ 0.35, y-0.35, z+0.35, 1.0) << QVector4D(x-0.35, y-0.35, z+0.35, 1.0) << QVector4D(x-0.35, y-0.35, z-0.35, 1.0);
 
 
         colors << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) // Front
@@ -354,8 +354,6 @@ void PacketRendererGLWidget::readEdges(){
         count++;
 
     }
-       // for(int i=0; i< pairs.size();i++)
-           // std::cout << pairs[i].x() << "," << pairs[i].y() << std::endl;
 
 }
 void PacketRendererGLWidget::readEdgeIntensities(){
@@ -376,11 +374,39 @@ void PacketRendererGLWidget::readEdgeIntensities(){
         edgeIntensities << arcLength.toFloat();
 
     }
+    float max = std::numeric_limits<float>::min();
+    float min = std::numeric_limits<float>::max();
+
+    //find min-max values
+    for( int i = 0; i < edgeIntensities.length(); i++){
+
+        if( edgeIntensities[i] < min)
+            min = edgeIntensities[i];
+        if( edgeIntensities[i] > max)
+            max = edgeIntensities[i];
+    }
+    std::cout << "max: " << max << std::endl;
+    std::cout << "min: " << min << std::endl;
+
+    //normalize Edge intensities
+    for( int i = 0; i < edgeIntensities.length(); i++){
+
+        edgeIntensities[i] = (edgeIntensities[i] - min)/(max - min);
+    }
 
     for(int i=0; i< pairs.length(); i++){
 
-        EdgePos << QVector4D(fileVertexPos.at(pairs.at(i).x()),1.0) <<  QVector4D(fileVertexPos.at(pairs.at(i).y()),1.0);
-        edgeColors << QVector4D(1,1,1,1) << QVector4D(1,1,1,1);
+        if(edgeIntensities[i] > 0.5){
+
+            EdgePos << QVector4D(fileVertexPos.at(pairs.at(i).x()),1.0) <<  QVector4D(fileVertexPos.at(pairs.at(i).y()),1.0);
+
+            edgeColors << QVector4D(edgeIntensities[i], 1-edgeIntensities[i], 0, 1.0) << QVector4D(edgeIntensities[i], 1-edgeIntensities[i], 0, 1.0);
+        }
+    }
+
+
+
+     for(int i=0; i< edgeIntensities.length(); i++){
 
     }
 }
