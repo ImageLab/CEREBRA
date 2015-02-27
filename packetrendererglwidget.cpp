@@ -276,6 +276,8 @@ void PacketRendererGLWidget::readVoxels(){
     QTextStream instream2(&contIntensityFile);
     QString intensitiesOfVoxel;
 
+    max = std::numeric_limits<float>::min();
+    min = std::numeric_limits<float>::max();
     while( (intensitiesOfVoxel = instream2.readLine()) != NULL){
 
         QRegExp rx("[,]");
@@ -285,6 +287,11 @@ void PacketRendererGLWidget::readVoxels(){
         for( int i = 0; i < list.length(); i++){
 
             intensityVectorOfVoxel << list.at(i).toFloat();
+
+            if( list.at(i).toFloat() > max)
+                max = list.at(i).toFloat();
+            if( list.at(i).toFloat() < min)
+                min = list.at(i).toFloat();
         }
 
         contIntensities << intensityVectorOfVoxel;
@@ -296,16 +303,28 @@ void PacketRendererGLWidget::readImage(){
     QImage img;
     if ( img.load(":/reference.png")) {
 
-        QImage newimg(10*img.width(), 10*img.height(), QImage::Format_RGB32);
+        QImage texture(3*contIntensities.at(0).length(), 3*contIntensities.length(), QImage::Format_RGB32);
 
-        for( int i = 0; i < 10; i++)
-            for( int x = 0; x < img.width(); x++)
-                for( int j = 0; j < 10; j++)
-                    for( int y = 0; y < img.height(); y++){
-                        newimg.setPixel(i*img.height() + x, j*img.width() + y, img.pixel(x, y));
-                    }
+        for( int currentVoxel = 0; currentVoxel < contIntensities.length(); currentVoxel++)
+            for( int time = 0; time < contIntensities.at(currentVoxel).length(); time++){
 
-        newimg.save("abc.png", "PNG");
+                int yPos = (1-contIntensities.at(currentVoxel).at(time))*img.height();
+                if(yPos >= img.height()) yPos = img.height()-1;
+                if(yPos <= 0) yPos = 0;
+                QRgb intensityOfVoxelInTime = img.pixel(5, yPos);
+
+                texture.setPixel(3*time, 3*currentVoxel, intensityOfVoxelInTime);
+                texture.setPixel(3*time+1, 3*currentVoxel, intensityOfVoxelInTime);
+                texture.setPixel(3*time+2, 3*currentVoxel, intensityOfVoxelInTime);
+                texture.setPixel(3*time, 3*currentVoxel+1, intensityOfVoxelInTime);
+                texture.setPixel(3*time+1, 3*currentVoxel+1, intensityOfVoxelInTime);
+                texture.setPixel(3*time+2, 3*currentVoxel+1, intensityOfVoxelInTime);
+                texture.setPixel(3*time, 3*currentVoxel+2, intensityOfVoxelInTime);
+                texture.setPixel(3*time+1, 3*currentVoxel+2, intensityOfVoxelInTime);
+                texture.setPixel(3*time+2, 3*currentVoxel+2, intensityOfVoxelInTime);
+            }
+
+        texture.save("texture.png", "PNG");
     }
 }
 
@@ -385,6 +404,3 @@ void PacketRendererGLWidget::readEdgeIntensities(){
         }
     }
 }
-
-
-
