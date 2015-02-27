@@ -6,7 +6,7 @@
         <file>arclengths.txt</file>
         <file>neighbors.txt</file>
         <file>reference.png</file>
-        <file>intensities.txt</file>
         <file>texture.png</file>
+        <file>contIntensities.txt</file>
     </qresource>
 </RCC>

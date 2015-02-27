@@ -17,7 +17,7 @@ PacketRendererGLWidget::PacketRendererGLWidget( QWidget *parent) : QGLWidget( pa
 
     QTimer *aTimer = new QTimer;
     connect(aTimer,SIGNAL(timeout()),SLOT(animate()));
-    aTimer->start(80); //updating per this amount of milliseconds
+    aTimer->start(100); //updating per this amount of milliseconds
 }
 
 PacketRendererGLWidget::~PacketRendererGLWidget(){}
@@ -293,7 +293,7 @@ void PacketRendererGLWidget::readVoxels(){
 
     file.close();
 
-    QFile contIntensityFile(":/intensities.txt");
+    QFile contIntensityFile(":/contIntensities.txt");
 
     if(!contIntensityFile.open(QIODevice::ReadOnly))
     {
