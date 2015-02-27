@@ -293,20 +293,20 @@ void PacketRendererGLWidget::readVoxels(){
 
 void PacketRendererGLWidget::readImage(){
 
-//    QImage img;
-//    if ( img.load(":/reference.png")) {
+    QImage img;
+    if ( img.load(":/reference.png")) {
 
-//        QImage newimg(10*img.width(), 10*img.height(), QImage::Format_RGB32);
+        QImage newimg(10*img.width(), 10*img.height(), QImage::Format_RGB32);
 
-//        for( int i = 0; i < 10; i++)
-//            for( int x = 0; x < img.width(); x++)
-//                for( int j = 0; j < 10; j++)
-//                    for( int y = 0; y < img.height(); y++){
-//                        newimg.setPixel(i*img.width() + x, j*img.height() + y, img.pixel(x, y));
-//                    }
+        for( int i = 0; i < 10; i++)
+            for( int x = 0; x < img.width(); x++)
+                for( int j = 0; j < 10; j++)
+                    for( int y = 0; y < img.height(); y++){
+                        newimg.setPixel(i*img.height() + x, j*img.width() + y, img.pixel(x, y));
+                    }
 
-//        newimg.save("abc.png", "PNG");
-//    }
+        newimg.save("abc.png", "PNG");
+    }
 }
 
 void PacketRendererGLWidget::readEdges(){
@@ -383,12 +383,6 @@ void PacketRendererGLWidget::readEdgeIntensities(){
 
             edgeColors << QVector4D(edgeIntensities[i], 1-edgeIntensities[i], 0, 1.0) << QVector4D(edgeIntensities[i], 1-edgeIntensities[i], 0, 1.0);
         }
-    }
-
-
-
-     for(int i=0; i< edgeIntensities.length(); i++){
-
     }
 }
 
