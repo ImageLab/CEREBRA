@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "packetfilereader.h"
 
 namespace Ui {
 class MainWindow;
@@ -17,6 +18,10 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    PacketFileReader reader;
+
+public slots:
+    void loadButtonClicked();
 };
 
 #endif // MAINWINDOW_H

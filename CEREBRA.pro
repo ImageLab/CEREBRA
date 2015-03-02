@@ -11,13 +11,14 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = CEREBRA
 TEMPLATE = app
 
-
 SOURCES += main.cpp\
         mainwindow.cpp \
-    packetrendererglwidget.cpp
+    packetrendererglwidget.cpp \
+    packetfilereader.cpp
 
 HEADERS  += mainwindow.h \
-    packetrendererglwidget.h
+    packetrendererglwidget.h \
+    packetfilereader.h
 
 FORMS    += mainwindow.ui
 

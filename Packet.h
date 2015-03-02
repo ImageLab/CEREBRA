@@ -1,9 +1,13 @@
 #include <map>
 #include <cstdlib>
 #include <iostream>
+#include <vector>
 
+using namespace std;
 namespace libsimple
 {
+	#ifndef PACKET_HEADER
+	#define PACKET_HEADER
 	/// <summary>
 	/// This class encapsulates brain data.
 	/// </summary>
@@ -26,19 +30,19 @@ namespace libsimple
 		/// <summary>
 		/// Array of Node intensities. Accessed as Intensities[time,node], both 0-based.
 		/// </summary>
-		double **Intensities;
+		vector< vector< float> > intensities;
 
         /// <summary>
         /// Array of max and min voxel size values.
         /// </summary>
-        double *VoxelSizeRange;
+        vector <float> voxelSizeRange;
 
         bool potatoProcess;
 
         /// <summary>
         /// Matrix to apply transformation to MNI Space.
         /// </summary>
-        double **MNITransitionMatrix;
+        vector< vector< float> > mniTransitionMatrix;
 
 		/// <summary>
 		/// Array of edges. Edges[time,origin_node][i].Key is the node that origin_node
@@ -49,17 +53,17 @@ namespace libsimple
         /// <summary>
         /// Array of mapped Edges according to sorted packet by X coordinate.
         /// </summary>
-        int *EdgeMapX;
+        vector<int> EdgeMapX;
 
         /// <summary>
         /// Array of mapped Edges according to sorted packet by Y coordinate.
         /// </summary>
-        int *EdgeMapY;
+        vector<int> EdgeMapY;
 
         /// <summary>
         /// Array of mapped Edges according to sorted packet by Z coordinate.
         /// </summary>
-        int *EdgeMapZ;
+        vector<int> EdgeMapZ;
 
 		/// <summary>
 		/// This is Vector3f in Unity. I(baha) didn't want to link against Unity.
@@ -79,7 +83,7 @@ namespace libsimple
 		/// <summary>
 		/// Positions in space.
 		/// </summary>
-		Point3D *vXYZ;
+		vector<Point3D> vXYZ;
 
 		//private Dictionary<string, object> extras;
 
@@ -262,4 +266,5 @@ namespace libsimple
 		//	return p;
 		//}
 	};
+	#endif
 }

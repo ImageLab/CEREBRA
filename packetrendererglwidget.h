@@ -6,7 +6,6 @@
 #include <QGLWidget>
 #include <QGLShaderProgram>
 #include <QVector>
-#include <vector>
 #include "Packet.h"
 
 /**
@@ -84,7 +83,16 @@ public:
      * @brief setPacket updates the packet to be rendered
      * @param packet is the new packet which will be replaced with the current one, if any.
      */
-    void setPacket( libsimple::Packet packet);
+    void setPacket( libsimple::Packet *packet, QString workingDirectory = "");
+
+    /**
+     * @brief setWorkingDirectory makes PacketRendererGLWidget to
+     * work on the specified directory. If anything specified,
+     * it works on the location where the executable is located.
+     * @param workingDirectory is the directory where it is asked
+     * to work on.
+     */
+    void setWorkingDirectory( QString workingDir);
 
 //auxiliary functions
 private:
@@ -104,30 +112,27 @@ private:
     void updateAttributeArrays();
 
     /**
-     * @brief readVoxels is just a testing function
-     * It reads specifically designed txt file
-     * to obtain voxel position, intensity etc.
+     * @brief createTexture creates a texture in the working directory,
+     * if specified. Otherwise it creates the texture where the executable
+     * is located.
      */
-    void readVoxels();
-    void readImage();
-    void readEdges();
-    void readEdgeIntensities();
+    void createTexture();
 
+    QString getWorkingDirectory();
 
 private:
 
-    Packet packetToRender;
+    Packet *packetToRender;
+    QString workingDirectory;
 
     //shader variables
     QGLShaderProgram shaderProgram;
     QVector<QVector4D> vertices; //passed to gpu
-    QVector<QVector4D> colors; //passed to gpu
     QVector<QVector2D> textureCoordinates; //passed to gpu
     QVector2D textureOffset;
     GLuint texture;
     QMatrix4x4 projection;
     QMatrix4x4 modelView;
-
 
     /**
      * To handle rotation, zooming etc.
@@ -136,15 +141,6 @@ private:
     double alpha; //rotate around y axis
     double beta; //rotate around x axis
     double distance;
-
-    //auxiliary variables. will be removed later
-    QVector<QVector3D> fileVertexPos;
-    QVector<float> fileVoxelIntensities;
-    QVector< QVector<float>> contIntensities;
-    QVector<QVector2D> pairs;
-    QVector<float> edgeIntensities;
-    QVector<QVector4D> EdgePos;
-    QVector<QVector4D> edgeColors;
 
 private slots:
      void animate();
