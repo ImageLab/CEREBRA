@@ -116,8 +116,9 @@ private:
      * if specified. Otherwise it creates the texture where the executable
      * is located.
      */
-    void createTexture();
-
+    void createVoxelTexture();
+    void createEdgePairTexture();
+    void createTexture( QString textureName, vector< vector<float> > &intensityValues);
     QString getWorkingDirectory();
 
 private:
@@ -127,10 +128,13 @@ private:
 
     //shader variables
     QGLShaderProgram shaderProgram;
-    QVector<QVector4D> vertices; //passed to gpu
-    QVector<QVector2D> textureCoordinates; //passed to gpu
+    QVector<QVector4D> voxelVertices; //passed to gpu
+    QVector<QVector2D> voxelTextureCoordinates; //passed to gpu
+    QVector<QVector4D> edgeVertices; //passed to gpu
+    QVector<QVector2D> edgeTextureCoordinates; //passed to gpu
     QVector2D textureOffset;
-    GLuint texture;
+    GLuint voxelTexture;
+    GLuint edgeTexture;
     QMatrix4x4 projection;
     QMatrix4x4 modelView;
 
@@ -141,6 +145,8 @@ private:
     double alpha; //rotate around y axis
     double beta; //rotate around x axis
     double distance;
+
+    QTimer *aTimer;
 
 private slots:
      void animate();

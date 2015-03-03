@@ -26,6 +26,34 @@ namespace libsimple
 		 */
 
 	public:
+
+		// <summary>
+		/// This is Vector3f in Unity. I(baha) didn't want to link against Unity.
+		/// </summary>
+		struct Point3D
+		{
+		public:
+			float x, y, z;
+			
+			Point3D();
+
+			Point3D(double _x, double _y, double _z);
+
+			Point3D(float _x, float _y, float _z);
+		};
+
+		struct Point2D
+		{
+		public:
+			float x, y;
+			
+			Point2D();
+
+			Point2D(double _x, double _y);
+
+			Point2D(float _x, float _y);
+		};
+
 		Packet();
 		/// <summary>
 		/// Array of Node intensities. Accessed as Intensities[time,node], both 0-based.
@@ -45,10 +73,12 @@ namespace libsimple
         vector< vector< float> > mniTransitionMatrix;
 
 		/// <summary>
-		/// Array of edges. Edges[time,origin_node][i].Key is the node that origin_node
-		/// is connected. Edges[time,origin_node][i].Value is the edge weight.
+		// pair of edges. edge.x is origin. edge.y is the destination
 		/// </summary>
-		//map<int, double> Edges;
+		vector<Point2D> edges;
+
+		//edgeIntensities[edge][time]
+		vector< vector<float> > edgeIntensities;
 
         /// <summary>
         /// Array of mapped Edges according to sorted packet by X coordinate.
@@ -64,21 +94,6 @@ namespace libsimple
         /// Array of mapped Edges according to sorted packet by Z coordinate.
         /// </summary>
         vector<int> EdgeMapZ;
-
-		/// <summary>
-		/// This is Vector3f in Unity. I(baha) didn't want to link against Unity.
-		/// </summary>
-		struct Point3D
-		{
-		public:
-			float x, y, z;
-			
-			Point3D();
-
-			Point3D(double _x, double _y, double _z);
-
-			Point3D(float _x, float _y, float _z);
-		};
 
 		/// <summary>
 		/// Positions in space.
