@@ -12,6 +12,7 @@ PacketRendererGLWidget::PacketRendererGLWidget( QWidget *parent) : QGLWidget( pa
 
     aTimer = new QTimer;
     connect(aTimer,SIGNAL(timeout()),SLOT(animate()));
+    shouldAnimate = true;
 }
 
 PacketRendererGLWidget::~PacketRendererGLWidget(){
@@ -47,6 +48,7 @@ void PacketRendererGLWidget::initializeGL(){
     shaderProgram.bind();
 
     shaderProgram.enableAttributeArray( "vPosition");
+    shaderProgram.enableAttributeArray( "vColor");
     shaderProgram.enableAttributeArray( "vTextureCoordinate");
 }
 
@@ -57,11 +59,13 @@ void PacketRendererGLWidget::paintGL(){
     glDrawArrays(GL_TRIANGLES, 0, voxelVertices.size());
 
     shaderProgram.setAttributeArray( "vPosition", edgeVertices.constData());
+    shaderProgram.setAttributeArray( "vColor", colors.constData());
     shaderProgram.setAttributeArray( "vTextureCoordinate", edgeTextureCoordinates.constData());
 
     glDrawArrays(GL_LINES, 0, edgeVertices.size());
 
     shaderProgram.setAttributeArray( "vPosition", voxelVertices.constData());
+    shaderProgram.setAttributeArray( "vColor", colors.constData());
     shaderProgram.setAttributeArray( "vTextureCoordinate", voxelTextureCoordinates.constData());
 }
 
@@ -156,6 +160,7 @@ void PacketRendererGLWidget::updateAttributeArrays(){
         float z = packetToRender->vXYZ[currentVoxel].z;
         float yTextureOffset = (float)1/(float)(3*packetToRender->vXYZ.size());
         float yPos = ((float)currentVoxel/(float)packetToRender->vXYZ.size()) + yTextureOffset;
+        float intensity = packetToRender->intensities[currentVoxel][0];
 
         voxelVertices << QVector4D(x-0.35, y-0.35, z+0.35, 1.0) << QVector4D(x+ 0.35, y-0.35, z+0.35, 1.0) << QVector4D(x+ 0.35,  y+0.35, z+0.35, 1.0) // Front
                 << QVector4D(x+ 0.35,  y+0.35, z+0.35, 1.0) << QVector4D(x-0.35,  y+0.35, z+0.35, 1.0) << QVector4D(x-0.35, y-0.35, z+0.35, 1.0)
@@ -169,6 +174,19 @@ void PacketRendererGLWidget::updateAttributeArrays(){
                 << QVector4D(x+ 0.35,  y+0.35, z-0.35, 1.0) << QVector4D(x-0.35,  y+0.35, z-0.35, 1.0) << QVector4D(x-0.35,  y+0.35, z+0.35, 1.0)
                 << QVector4D(x-0.35, y-0.35, z-0.35, 1.0) << QVector4D(x+ 0.35, y-0.35, z-0.35, 1.0) << QVector4D(x+ 0.35, y-0.35, z+0.35, 1.0) // Bottom
                 << QVector4D(x+ 0.35, y-0.35, z+0.35, 1.0) << QVector4D(x-0.35, y-0.35, z+0.35, 1.0) << QVector4D(x-0.35, y-0.35, z-0.35, 1.0);
+
+        colors << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) // Front
+               << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0)
+               << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) // Back
+               << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0)
+               << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) // Left
+               << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0)
+               << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) // Right
+               << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0)
+               << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) // Top
+               << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0)
+               << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) // Bottom
+               << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0) << QVector4D(intensity, 1-intensity, 0, 1.0);
 
         voxelTextureCoordinates << QVector2D(0, yPos) << QVector2D(0, yPos) << QVector2D(0, yPos) // Front
                           << QVector2D(0, yPos) << QVector2D(0, yPos) << QVector2D(0, yPos)
@@ -186,6 +204,7 @@ void PacketRendererGLWidget::updateAttributeArrays(){
 
     shaderProgram.setAttributeArray( "vPosition", voxelVertices.constData());
     shaderProgram.setAttributeArray( "vTextureCoordinate", voxelTextureCoordinates.constData());
+    shaderProgram.setAttributeArray( "vColor", colors.constData());
 
     for(int pair=0; pair < packetToRender->edges.size(); pair++){
         if(packetToRender->edgeIntensities[pair][0] > 0.5){
@@ -209,10 +228,11 @@ void PacketRendererGLWidget::setPacket(Packet *packet, QString workingDirectory)
 
     createVoxelTexture();
 
-    if( packetToRender->edges.size() > 0)
-        createEdgePairTexture();
+    //if( packetToRender->edges.size() > 0)
+    //    createEdgePairTexture();
 
-    voxelTexture = bindTexture(QPixmap(getWorkingDirectory() + QDir::separator() + "voxelTexture.png"));
+    voxelTexture = bindTexture(QPixmap(getWorkingDirectory() + QDir::separator() + "voxelTexture.jpeg"));
+    shaderProgram.setUniformValue("isTextured", shouldAnimate);
     shaderProgram.setUniformValue("textureOffset", textureOffset);
     shaderProgram.setUniformValue("texture", 0);
     glBindTexture(GL_TEXTURE_2D, voxelTexture);
@@ -220,12 +240,12 @@ void PacketRendererGLWidget::setPacket(Packet *packet, QString workingDirectory)
     updateAttributeArrays();
     updateMatrices();
 
-    aTimer->start(30); //updating per this amount of milliseconds
+    aTimer->start(40); //updating per this amount of milliseconds
 }
 
 void PacketRendererGLWidget::createVoxelTexture(){
 
-    QString voxelTextureName = "voxelTexture.png";
+    QString voxelTextureName = "voxelTexture.jpeg";
 
 //    QImage reference(10,512,QImage::Format_RGB32);
 //    for(int x=0;x< reference.width();x++)
@@ -234,7 +254,7 @@ void PacketRendererGLWidget::createVoxelTexture(){
 //            reference.setPixel(x,y,QColor(255*(1-((float)y/(float)reference.height())), 255*((float)y/(float)reference.height()), 0).rgb());
 //        }
 
-//    reference.save("reference.png", "PNG");
+//    reference.save("reference.jpeg", "JPEG");
 
     QImage texture;
 
@@ -256,7 +276,7 @@ void PacketRendererGLWidget::createVoxelTexture(){
 
 void PacketRendererGLWidget::createEdgePairTexture(){
 
-    QString edgeTextureName = "edgeTexture.png";
+    QString edgeTextureName = "edgeTexture.jpeg";
     QImage texture;
 
     if( texture.load( getWorkingDirectory() + QDir::separator() + edgeTextureName))
@@ -279,7 +299,7 @@ void PacketRendererGLWidget::createTexture(QString textureName, vector< vector<f
 
     QImage texture;
     QImage img;
-    if ( img.load(":/reference.png")) {
+    if ( img.load(":/reference.jpeg")) {
 
         texture = QImage(12*intensityValues.at(0).size(), 3*intensityValues.size(), QImage::Format_RGB32);
 
@@ -318,7 +338,7 @@ void PacketRendererGLWidget::createTexture(QString textureName, vector< vector<f
                }
             }
 
-        texture.save( getWorkingDirectory() + QDir::separator() + textureName, "PNG");
+        texture.save( getWorkingDirectory() + QDir::separator() + textureName, "JPEG");
     }
 }
 

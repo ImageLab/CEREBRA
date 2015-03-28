@@ -20,6 +20,8 @@ HEADERS  += mainwindow.h \
     packetrendererglwidget.h \
     packetfilereader.h
 
+QMAKE_LFLAGS += -Wl,--large-address-aware
+
 FORMS    += mainwindow.ui
 
 RESOURCES += \

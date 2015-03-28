@@ -130,6 +130,7 @@ private:
     QGLShaderProgram shaderProgram;
     QVector<QVector4D> voxelVertices; //passed to gpu
     QVector<QVector2D> voxelTextureCoordinates; //passed to gpu
+    QVector<QVector4D> colors; //passed to gpu
     QVector<QVector4D> edgeVertices; //passed to gpu
     QVector<QVector2D> edgeTextureCoordinates; //passed to gpu
     QVector2D textureOffset;
@@ -147,6 +148,8 @@ private:
     double distance;
 
     QTimer *aTimer;
+
+    bool shouldAnimate;
 
 private slots:
      void animate();
