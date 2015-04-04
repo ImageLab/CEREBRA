@@ -1,0 +1,101 @@
+
+This readme is intended for the MATLAB Compiler 6.0.
+
+Copyright 1997-2014 The MathWorks, Inc.
+  
+
+                               README
+
+The files in this directory fall into two categories:
+
+   * Example source code files; some are written as M-files and 
+     some are written in the C language. 
+   * Files to help you build and configure the source code files into 
+     stand-alone external applications.
+
+The "MATLAB Compiler User's Guide" details most of the files in this
+directory.  
+
+
+                   *******************************
+                      EXAMPLE SOURCE CODE FILES
+                   *******************************
+
+The Makefile (Makefile.nmake) found in this directory can be used to 
+build the examples.  The user needs to modify the MATLABROOT
+environment variable found in the makefiles to indicate the appropriate
+location of the root directory of MATLAB.
+
+You can use the following commands to build and test the examples:
+
+On Windows:
+-----------
+1. To build and test all the examples in one step:
+         nmake /f Makefile.nmake MATLABROOT=<matlabroot> bnt_exes 
+2. To only build the examples:
+         nmake /f Makefile.nmake MATLABROOT=<matlabroot> build_all
+3. To clean the targets:
+         nmake /f Makefile.nmake clean
+
+
+On Unix:
+--------
+1. To build and test all the examples in one step:
+         gmake -f Makefile MATLABROOT=<matlabroot> bnt_exes 
+2. To only build the examples:
+         gmake -f Makefile MATLABROOT=<matlabroot> build_all
+3. To run all the examples built previously:
+         gmake -f Makefile MATLABROOT=<matlabroot> exes
+4. To clean the targets:
+         gmake -f Makefile clean
+
+Note: <matlabroot> is the actual directory (without the trailing "slash"
+(backwards or forwards)) where MATLAB is installed.
+
+To build each example individually, you have to provide the name of the
+final executable as the target to gmake (nmake on Windows). For various
+target names, refer to the Makefile (Makefile.nmake on Windows).
+
+
+The following section explains each example in brief.
+
+matrixdriver.c, addmatrix.m, multiplymatrix.m, eigmatrix.m: Advanced Example
+----------------------------------------------------------------------------
+The "MATLAB Compiler User's Guide" describes a more complicated example 
+of creating a C-shared library with MATLAB Compiler and linking it against
+a wrapper code to create an executable.  The sample files in this example 
+are:
+
+   * matrixdriver.c, which is a C function that calls the various M-files 
+     listed above and prints the results.
+   * addmatrix.m, which is a function M-file that takes two matrices and 
+     returns the sum of the two matrices.
+   * multiplymatrix.m, which is a function M-file that takes two matrices and 
+     returns the product of the two matrices.
+   * eigmatrix.m, which is a function M-file that takes a matrix and 
+     returns the eigenvalues of the same.
+
+See the "MATLAB Compiler User's Guide" for details on building this 
+application.
+
+
+triangle.c, main_for_lib.c main_for_lib.h, sierpinski.m: Graphics Shared Library
+--------------------------------------------------------------------------------
+This example shows how to create a graphics-based shared libary using the MATLAB
+Compiler. The files needed to compile and run this example are listed above.
+Use the following command should be used to create a C shared library and 
+link the same against the external C code.
+
+    mcc -l -o libtriangle sierpinski.m
+    mbuild triangle.c main_for_lib.c -L. -ltriangle (on UNIX)
+    mbuild triangle.c main_for_lib.c libtriangle.lib (on Windows)
+
+You can also create a C++ shared library from the same M-code and then use it 
+with C++ wrapper code. Use the following command:
+
+    mcc -W cpplib:libtrianglep sierpinski.m
+    mbuild triangle.cpp main_for_lib.c -L. -ltrianglep -output trianglep
+    mbuild triangle.cpp main_for_lib.c libtrianglep.lib -output trianglep
+
+This will create a stand-alone called trianglep (trianglep.exe on Windows).
+

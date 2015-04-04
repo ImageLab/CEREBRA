@@ -54,15 +54,15 @@ void PacketRendererGLWidget::initializeGL(){
 
 void PacketRendererGLWidget::paintGL(){
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glDrawArrays(GL_TRIANGLES, 0, voxelVertices.size());
+    glDrawArrays( GL_TRIANGLES, 0, voxelVertices.size());
 
     shaderProgram.setAttributeArray( "vPosition", edgeVertices.constData());
     shaderProgram.setAttributeArray( "vColor", colors.constData());
     shaderProgram.setAttributeArray( "vTextureCoordinate", edgeTextureCoordinates.constData());
 
-    glDrawArrays(GL_LINES, 0, edgeVertices.size());
+    glDrawArrays( GL_LINES, 0, edgeVertices.size());
 
     shaderProgram.setAttributeArray( "vPosition", voxelVertices.constData());
     shaderProgram.setAttributeArray( "vColor", colors.constData());

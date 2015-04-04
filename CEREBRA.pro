@@ -34,3 +34,12 @@ DEPENDPATH += $$PWD/
 
 win32:!win32-g++: PRE_TARGETDEPS += $$PWD/libsimple.lib
 else:unix|win32-g++: PRE_TARGETDEPS += $$PWD/liblibsimple.a
+
+unix|win32: LIBS += -L$$PWD/lib/extern/lib/win32/microsoft/ -llibmat
+
+unix|win32: LIBS += -L$$PWD/lib/extern/lib/win32/microsoft/ -llibeng
+
+unix|win32: LIBS += -L$$PWD/lib/extern/lib/win32/microsoft/ -llibmx
+
+INCLUDEPATH += $$PWD/lib/extern/include
+DEPENDPATH += $$PWD/lib/extern/include
