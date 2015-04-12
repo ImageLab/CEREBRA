@@ -1,5 +1,7 @@
 /*
- * Copyright 1984-2014 The MathWorks, Inc.
+ * PUBLISHed header for libmat, the MAT File library.
+ *
+ * Copyright 1984-2011 The MathWorks, Inc.
  * All Rights Reserved.
  */
 
@@ -12,6 +14,7 @@
 
 #ifndef mat_published_c_api_h
 #define mat_published_c_api_h
+
 
 #ifndef EXTERN_C
 #  ifdef __cplusplus
@@ -28,11 +31,6 @@
 #include <stdio.h>  /* for FILE */
 
 #include "matrix.h" /* for mxArray */
-
-/**
- * \file
- * \ingroup mat_pub_C_api
- */
 
 
 /* incomplete typedef for MATFile */

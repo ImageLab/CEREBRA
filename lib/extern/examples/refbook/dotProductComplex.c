@@ -12,12 +12,12 @@
 * X is COMPLEX scalar
 *
 * This is a MEX-file for MATLAB.
-* Copyright 2010-2014 The MathWorks, Inc.
+* Copyright 2010 The MathWorks, Inc.
 *=======================================================*/
 /* $Revision: */
 
 /* Macro to define the correct function prototype */
-#if defined (_WIN32) || defined(__APPLE__)
+#ifdef _WIN32
 #define FORTRAN_COMPLEX_FUNCTIONS_RETURN_VOID 1
 #endif
 
@@ -76,7 +76,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
 
   /* Call BLAS function */
   /* Use a different call syntax on different platforms */
-#ifdef FORTRAN_COMPLEX_FUNCTIONS_RETURN_VOID
+#ifdef _WIN32
   zdotu(&result, &nElements, zinA, &incx, zinB, &incy);
 #else
   result = zdotu(&nElements, zinA, &incx, zinB, &incy);

@@ -280,13 +280,6 @@ EXTERN_C LIBCOVRT_API int32_T covrtLogMcdc(covrtInstance* instance,
                                             int32_T mcdcId, 
                                             int32_T condition);
 
-/*
- * MATLAB INTERNAL USE ONLY :: Log decision in block
- */
-EXTERN_C LIBCOVRT_API void covrtLogBlockDec(covrtInstance* instance,
-                                            uint32_T covId, 
-                                            int32_T decId, 
-                                            int32_T eleIdx, 
-                                            int32_T decVal);
+
 
 #endif /* covrt_h */

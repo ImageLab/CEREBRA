@@ -2,11 +2,10 @@
  * mxmalloc.c
  * 
  * This function takes a MATLAB string as an argument and copies it in 
- * NULL terminated ANSI C string. Use this function only with 
- * MATLAB strings represented in single-byte encoding schemes.
+ * NULL terminated ANSI C string.
  *
  * This is a MEX-file for MATLAB.  
- * Copyright 1984-2014 The MathWorks, Inc.
+ * Copyright 1984-2011 The MathWorks, Inc.
  *=================================================================*/
 
 #include "mex.h"
@@ -36,10 +35,13 @@ mexFunction(int nlhs,mxArray *plhs[],int nrhs,const mxArray *prhs[])
                 "Input argument must be a string.");
     }
     
-    /* Get number of characters in the input string.  Allocate enough
-       memory to hold the converted string. */
+    /* Find out how long the input string is.  Allocate enough memory
+       to hold the converted string.  NOTE: MATLAB stores characters
+       as 2 byte Unicode ( 16 bit ASCII) on machines with multi-byte
+       character sets.  You should use mxChar to ensure enough space
+       is allocated to hold the string */
     
-    buflen = mxGetN(prhs[0]) + 1;
+    buflen = mxGetN(prhs[0])*sizeof(mxChar)+1;
     buf = mxMalloc(buflen);
     
     /* Copy the string data into buf. */ 

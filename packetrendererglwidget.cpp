@@ -240,7 +240,7 @@ void PacketRendererGLWidget::setPacket(Packet *packet, QString workingDirectory)
     updateAttributeArrays();
     updateMatrices();
 
-    aTimer->start(40); //updating per this amount of milliseconds
+    aTimer->start(20); //updating per this amount of milliseconds
 }
 
 void PacketRendererGLWidget::createVoxelTexture(){
@@ -271,7 +271,7 @@ void PacketRendererGLWidget::createVoxelTexture(){
             packetToRender->intensities[voxel].push_back((float)1.0);
     }
 
-    createTexture( voxelTextureName, packetToRender->intensities);
+   createTexture( voxelTextureName, packetToRender->intensities);
 }
 
 void PacketRendererGLWidget::createEdgePairTexture(){

@@ -14,6 +14,8 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QWidget *parent = 0);
+    QString fileName;
+    QString directory;
     ~MainWindow();
 
 private:
@@ -22,6 +24,7 @@ private:
 
 public slots:
     void loadButtonClicked();
+    void startButtonClicked();
 };
 
 #endif // MAINWINDOW_H

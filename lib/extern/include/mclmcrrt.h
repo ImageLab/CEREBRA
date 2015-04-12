@@ -4366,12 +4366,6 @@ bool MW_CALL_CONV mclMlfFeval_proxy(HMCRINSTANCE a0, const char *a1,
 
 
 /* Map original name to unique proxy layer name. */
-#undef mxIsScalar
-#define mxIsScalar mxIsScalar_proxy
-
-
-
-/* Map original name to unique proxy layer name. */
 #undef mxIsChar
 #define mxIsChar mxIsChar_proxy
 
@@ -4758,18 +4752,6 @@ bool MW_CALL_CONV mclMlfFeval_proxy(HMCRINSTANCE a0, const char *a1,
 
 
 
-/* Map original name to unique proxy layer name. */
-#undef mxCreateUninitNumericMatrix
-#define mxCreateUninitNumericMatrix mxCreateUninitNumericMatrix_proxy
-
-
-
-/* Map original name to unique proxy layer name. */
-#undef mxCreateUninitNumericArray
-#define mxCreateUninitNumericArray mxCreateUninitNumericArray_proxy
-
-
-
 #if !defined(MX_COMPAT_32)
 /* Map original name to unique proxy layer name. */
 #undef mxSetN_730
@@ -4974,12 +4956,6 @@ bool MW_CALL_CONV mclMlfFeval_proxy(HMCRINSTANCE a0, const char *a1,
 /* Map original name to unique proxy layer name. */
 #undef mxArrayToString
 #define mxArrayToString mxArrayToString_proxy
-
-
-
-/* Map original name to unique proxy layer name. */
-#undef mxArrayToUTF8String
-#define mxArrayToUTF8String mxArrayToUTF8String_proxy
 
 
 
@@ -5340,9 +5316,6 @@ EXTERN_C
 bool mxIsLogical_proxy(const mxArray *a0);
 
 EXTERN_C
-bool mxIsScalar_proxy(const mxArray *a0);
-
-EXTERN_C
 bool mxIsChar_proxy(const mxArray *a0);
 
 EXTERN_C
@@ -5494,14 +5467,6 @@ mxArray * mxCreateNumericMatrix_730_proxy(size_t a0, size_t a1,
     mxClassID a2, mxComplexity a3);
 
 EXTERN_C
-mxArray * mxCreateUninitNumericMatrix_proxy(size_t a0, size_t a1, 
-    mxClassID a2, mxComplexity a3);
-
-EXTERN_C
-mxArray * mxCreateUninitNumericArray_proxy(size_t a0, size_t *a1, 
-    mxClassID a2, mxComplexity a3);
-
-EXTERN_C
 void mxSetN_730_proxy(mxArray *a0, size_t a1);
 
 EXTERN_C
@@ -5558,9 +5523,6 @@ int mxGetString_730_proxy(const mxArray *a0, char *a1, size_t a2);
 
 EXTERN_C
 char * mxArrayToString_proxy(const mxArray *a0);
-
-EXTERN_C
-char * mxArrayToUTF8String_proxy(const mxArray *a0);
 
 EXTERN_C
 mxArray * mxCreateStringFromNChars_730_proxy(const char *a0, size_t a1);

@@ -1,11 +1,7 @@
-/* Copyright 1999-2014 The MathWorks, Inc. */
+/* Copyright 1999-2006 The MathWorks, Inc. */
 
 /*
  *Doc example  Chapter 5.
- */
-
-/* This file is used in conjunction with the %#external pragma, which is no longer supported
- * as of R2015a. However, we retain the file for test purposes.
  */
 
 #include "collect_one_external.h"

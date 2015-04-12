@@ -1,4 +1,12 @@
 #include "packetfilereader.h"
+#include "mat.h"
+#include "matrix.h"
+
+
+#pragma comment(lib, "lib/libmx.lib")
+#pragma comment(lib, "lib/libeng.lib")
+#pragma comment(lib, "lib/libmat.lib")
+
 
 PacketFileReader::PacketFileReader()
 {
@@ -83,24 +91,28 @@ QVector<QVector3D> PacketFileReader::readVoxelLocations( QString directory){
     //and in the following line there is the
     //intensity value of that voxel.
     //it is just a parser to train the rendering.
-    QFile voxelLocationFile(directory + QDir::separator() + "voxels.txt");
 
-    if(!voxelLocationFile.open(QIODevice::ReadOnly))
-    {
-        qDebug() << "error opening file: " << voxelLocationFile.error();
-        return voxelLocations;
-    }
+    QString voxelLocationFile = directory;
 
-    QTextStream instream(&voxelLocationFile);
-    QString pos;
+    MATFile *mFile = NULL;
+    mFile = matOpen(voxelLocationFile.toStdString().c_str(),"r");
+    if(mFile == NULL)
+        cout << "error opening MAT file: " << endl;
 
-    while( (pos = instream.readLine()) != NULL){
+    const mxArray *pa = NULL;
+    pa = matGetVariable(mFile, "occ_XYZ");
 
-        QRegExp rx("[ ]");
-        QStringList list = pos.split(rx, QString::SkipEmptyParts);
-        voxelLocations << QVector3D( list.at(0).toFloat(), list.at(1).toFloat(), list.at(2).toFloat());
-    }
-    voxelLocationFile.close();
+    if (pa == NULL)
+        printf("Error reading existing matrix %s\n");
+
+    const size_t *dims = mxGetDimensions_730( pa);
+    double *mxData = (double*)mxGetData( pa);
+
+    for( int row = 0; row < (int)dims[0]; row++)
+        for( int column = 0; (int)column < dims[1]; column += 3)
+            voxelLocations << QVector3D( mxData[dims[0] * column + row],
+                                         mxData[dims[0] * (column+1) + row],
+                                         mxData[dims[0] * (column+2) + row]);
 
     return voxelLocations;
 }
@@ -109,26 +121,26 @@ QVector< QVector<float>> PacketFileReader::readVoxelIntensities( QString directo
 
     QVector< QVector<float>> voxelIntensities;
 
-    QFile voxelIntensityFile(directory + QDir::separator() + "intensities.txt");
+    QString voxelIntensityFile = directory;
 
-    if(!voxelIntensityFile.open(QIODevice::ReadOnly))
-    {
-        qDebug() << "error opening file: " << voxelIntensityFile.error();
-        return voxelIntensities;
-    }
+    MATFile *mFile = NULL;
+    mFile = matOpen(voxelIntensityFile.toStdString().c_str(),"r");
+    if(mFile == NULL)
+        cout << "error opening MAT file: " << endl;
 
-    QTextStream instream(&voxelIntensityFile);
-    QString intensitiesOfVoxel;
+    const mxArray *pa = NULL;
+    pa = matGetVariable(mFile, "trData");
 
-    while( (intensitiesOfVoxel = instream.readLine()) != NULL){
+    if (pa == NULL)
+        printf("Error reading existing matrix %s\n");
 
-        QRegExp rx("[,]");
-        QStringList list = intensitiesOfVoxel.split(rx, QString::SkipEmptyParts);
+    const size_t *dims = mxGetDimensions_730( pa);
+    double *mxData = (double*)mxGetData( pa);
+
+    for( int row = 0; row < (int)dims[0]; row++){
         QVector<float> intensityVectorOfVoxel;
-
-        for( int i = 0; i < list.length(); i++)
-            intensityVectorOfVoxel << list.at(i).toFloat();
-
+        for( int column = 0; (int)column < dims[1]; column++)
+            intensityVectorOfVoxel << mxData[dims[0] * column + row];
         voxelIntensities << intensityVectorOfVoxel;
     }
 
@@ -139,29 +151,30 @@ QVector<QVector2D> PacketFileReader::readEdgePairs( QString directory){
 
     QVector<QVector2D> edgePairs;
 
-    QFile edgePairFile(directory + QDir::separator() + "edgeConnections.txt");
+    QString edgePairsFile = directory;
 
-    if(!edgePairFile.open(QIODevice::ReadOnly))
-    {
-        qDebug() << "error opening file: " << edgePairFile.error();
-        return edgePairs;
+
+    MATFile *mFile = NULL;
+    mFile = matOpen(edgePairsFile.toStdString().c_str(),"r");
+    if(mFile == NULL)
+        cout << "error opening MAT file: " << endl;
+
+    const mxArray *pa = NULL;
+    pa = matGetVariable(mFile, "all_neighs");
+
+    if (pa == NULL)
+        printf("Error reading existing matrix %s\n");
+    size_t rowSize = mxGetM(pa);
+
+    for(size_t i=0; i < rowSize; i++){
+         mxArray *cellArray = NULL;
+         cellArray = mxGetCell_730(pa,i);
+         size_t cellSize = mxGetN(cellArray);
+         double *mxData = (double*)mxGetData( cellArray);
+         for(int k = 0; k < cellSize; k++)
+            edgePairs << QVector2D(i, mxData[k]-1);
     }
 
-    QTextStream instream(&edgePairFile);
-    QString edgePairLine;
-    int count = 0;
-
-    while( (edgePairLine = instream.readLine()) != NULL){
-
-        QRegExp rx("[ ]");
-        QStringList list = edgePairLine.split(rx, QString::SkipEmptyParts);
-        for(int i=0; i< list.length();i++)
-            edgePairs << QVector2D(count, list[i].toInt()-1);
-
-        count++;
-    }
-
-    edgePairFile.close();
 
     return edgePairs;
 }
@@ -170,26 +183,26 @@ QVector< QVector<float>> PacketFileReader::readEdgePairIntensities( QString dire
 
     QVector< QVector<float>> edgePairIntensities;
 
-    QFile contEdgeIntensityFile( directory + QDir::separator() + "edgeIntensities.txt");
+    QString edgePairIntensitiesFile = directory;
 
-    if(!contEdgeIntensityFile.open(QIODevice::ReadOnly))
-    {
-        qDebug() << "error opening file: " << contEdgeIntensityFile.error();
-        return edgePairIntensities;
-    }
+    MATFile *mFile = NULL;
+    mFile = matOpen(edgePairIntensitiesFile.toStdString().c_str(),"r");
+    if(mFile == NULL)
+        cout << "error opening MAT file: " << endl;
 
-    QTextStream instream(&contEdgeIntensityFile);
-    QString intensityOfPair;
+    const mxArray *pa = NULL;
+    pa = matGetVariable(mFile, "all_a_tr");
 
-    while( (intensityOfPair = instream.readLine()) != NULL){
+    if (pa == NULL)
+        printf("Error reading existing matrix %s\n");
 
-        QRegExp rx("[,]");
-        QStringList list = intensityOfPair.split(rx, QString::SkipEmptyParts);
+    const size_t *dims = mxGetDimensions_730( pa);
+    double *mxData = (double*)mxGetData( pa);
+
+    for( int row = 0; row < (int)dims[0]; row++){
         QVector<float> intensityOfPairInTime;
-
-        for( int i = 0; i < list.length(); i++)
-            intensityOfPairInTime << list.at(i).toFloat();
-
+        for( int column = 0; (int)column < dims[1]; column++)
+            intensityOfPairInTime << mxData[dims[0] * column + row];
         edgePairIntensities << intensityOfPairInTime;
     }
 

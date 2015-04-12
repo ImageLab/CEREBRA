@@ -1,14 +1,15 @@
 
-This readme is intended for the MATLAB Compiler 6.0.
+This readme is intended for the MATLAB Compiler 4.3.
 
-Copyright 1997-2014 The MathWorks, Inc.
+Copyright 1997-2006 The MathWorks, Inc.
   
 
                                README
 
 The files in this directory fall into two categories:
 
-   * Example source code files; some are written as M-files 
+   * Example source code files; some are written as M-files and 
+     some are written in the C language. 
    * Files to help you build and configure the source code files into 
      stand-alone external applications.
 
@@ -95,6 +96,46 @@ and a MAT file. The sample M-file and the MAT-file are:
   * flames.mat, which is a MATLAB data file that contains the data for
     the graphic that is displayed.
 
+
+matrixdriver.c, addmatrix.m, multiplymatrix.m, eigmatrix.m: Advanced Example
+----------------------------------------------------------------------------
+The "MATLAB Compiler User's Guide" describes a more complicated example 
+of creating a C-shared library with MATLAB Compiler and linking it against
+a wrapper code to create an executable.  The sample files in this example 
+are:
+
+   * matrixdriver.c, which is a C function that calls the various M-files 
+     listed above and prints the results.
+   * addmatrix.m, which is a function M-file that takes two matrices and 
+     returns the sum of the two matrices.
+   * multiplymatrix.m, which is a function M-file that takes two matrices and 
+     returns the product of the two matrices.
+   * eigmatrix.m, which is a function M-file that takes a matrix and 
+     returns the eigenvalues of the same.
+
+See the "MATLAB Compiler User's Guide" for details on building this 
+application.
+
+
+triangle.c, main_for_lib.c main_for_lib.h, sierpinski.m: Graphics Shared Library
+--------------------------------------------------------------------------------
+This example shows how to create a graphics-based shared libary using the MATLAB
+Compiler. The files needed to compile and run this example are listed above.
+Use the following command should be used to create a C shared library and 
+link the same against the external C code.
+
+    mcc -l -o libtriangle sierpinski.m
+    mbuild triangle.c main_for_lib.c -L. -ltriangle (on UNIX)
+    mbuild triangle.c main_for_lib.c libtriangle.lib (on Windows)
+
+You can also create a C++ shared library from the same M-code and then use it 
+with C++ wrapper code. Use the following command:
+
+    mcc -W cpplib:libtrianglep sierpinski.m
+    mbuild triangle.cpp main_for_lib.c -L. -ltrianglep -output trianglep
+    mbuild triangle.cpp main_for_lib.c libtrianglep.lib -output trianglep
+
+This will create a stand-alone called trianglep (trianglep.exe on Windows).
 
 Data_Handling/ex_loadsave.m: Data Handling example
 -------------------------------------------------------------------------------

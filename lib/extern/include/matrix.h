@@ -38,6 +38,7 @@
 #endif
 
 /**
+ * \def LIBMMWMATRIX_PUBLISHED_API
  * Define symbol access for symbols exported from the libmwmatrix dll.
  */
 #if defined(BUILDING_PUBLISHED_API_CPP)
@@ -239,32 +240,32 @@ extern "C" {
 
 
 
-/*
+/**
  * Forward declaration for mxArray
  */
 typedef struct mxArray_tag mxArray;
 
-/*
+/**
  * Type representing the signature for MEX functions.
  */
 typedef void (*mxFunctionPtr) (int nlhs, mxArray *plhs[], int nrhs, mxArray *prhs[]);
 
-/*
+/**
  * Maximum mxArray name length
  */
 #define mxMAXNAM TMW_NAME_LENGTH_MAX
 
-/*
+/**
  * Logical type
  */
 typedef bool mxLogical;
 
-/*
+/**
  * Typedef required for Unicode support in MATLAB
  */
 typedef CHAR16_T mxChar;
 
-/*
+/**
  * Enumeration corresponding to all the valid mxArray types.
  */
 typedef enum
@@ -298,7 +299,7 @@ typedef enum
 }
 mxClassID;
 
-/*
+/**
  * Indicates whether floating-point mxArrays are real or complex.
  */
 typedef enum
@@ -433,12 +434,7 @@ LIBMMWMATRIX_PUBLISHED_API_EXTERN_C bool mxIsCell(const mxArray *pa);
 /*
  * Determine whether the given array's logical flag is on.
  */ 
-LIBMMWMATRIX_PUBLISHED_API_EXTERN_C  bool mxIsLogical(const mxArray *pa);
-
-/*
- * Determine whether the given array's scalar flag is on.
- */
-LIBMMWMATRIX_PUBLISHED_API_EXTERN_C  bool mxIsScalar(const mxArray *pa);
+LIBMMWMATRIX_PUBLISHED_API_EXTERN_C bool mxIsLogical(const mxArray *pa);
 
 /*  
  * Determine whether the given array contains character data. 
@@ -701,6 +697,7 @@ LIBMMWMATRIX_PUBLISHED_API_EXTERN_C void mxSetJc_700(mxArray *pa, int *newjc);
  */
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C size_t mxGetElementSize(const mxArray *pa);
 
+
 /* 
  * Return the offset (in number of elements) from the beginning of 
  * the array to a given subscript.  
@@ -776,24 +773,11 @@ LIBMMWMATRIX_PUBLISHED_API_EXTERN_C const char *mxGetClassName(const mxArray *pa
  */
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C bool mxIsClass(const mxArray *pa, const char *name);
 
-/*
- * Create a numeric matrix and initialize all its data elements to 0.
- * In standalone mode, out-of-memory will mean a NULL pointer is returned.
+/**
+ * \copydoc mxCreateNumericMatrixWithReuse
  */
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateNumericMatrix_730(size_t m, size_t n, mxClassID classid, mxComplexity flag);
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateNumericMatrix_700(int m, int n, mxClassID classid, mxComplexity flag);
-
-/*
- * Create an uninitialized numeric matrix.
- * The resulting array must be freed with mxDestroyArray.
- */
-LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateUninitNumericMatrix(size_t m, size_t n, mxClassID classid, mxComplexity flag);
-
-/*
- * Create an uninitialized numeric array.
- * The resulting array must be freed with mxDestroyArray.
- */
-LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateUninitNumericArray (size_t ndim, size_t *dims, mxClassID classid, mxComplexity flag);
 
 /* 
  * Set column dimension
@@ -814,25 +798,25 @@ LIBMMWMATRIX_PUBLISHED_API_EXTERN_C int mxSetDimensions_700(mxArray *pa, const i
  */
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C void mxDestroyArray(mxArray *pa);
 
-/*
- * Create a numeric array and initialize all its data elements to 0.
- *
- * Similar to mxCreateNumericMatrix, in a standalone application, 
- * out-of-memory will mean a NULL pointer is returned.
+/**
+ * \copydoc mxCreateNumericMatrixWithReuse
  */
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateNumericArray_730(size_t ndim, const size_t *dims, mxClassID classid, mxComplexity flag);
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateNumericArray_700(int ndim, const int *dims, mxClassID classid, mxComplexity flag);
 
-/*
- * Create an N-Dimensional array to hold string data;
- * initialize all elements to 0.
+
+/**
+ * \copybrief create_char
+ *
+ * \copydetails mxCreateNumericMatrixWithReuse
  */
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateCharArray_730(size_t ndim, const size_t *dims);
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateCharArray_700(int ndim, const int *dims);
 
-/*
- * Create a two-dimensional array to hold double-precision
- * floating-point data; initialize each data element to 0.
+
+
+/**
+ * \copydoc mxCreateDoubleMatrixWithReuse
  */
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateDoubleMatrix_730(size_t m, size_t n, mxComplexity flag);
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateDoubleMatrix_700(int m, int n, mxComplexity flag);
@@ -844,21 +828,27 @@ LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateDoubleMatrix_700(int m, int
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxLogical *mxGetLogicals(const mxArray *pa);
 
 
-/*
+/**
  * Create a logical array and initialize its data elements to false.
+ *
+ * \copydetails mxCreateNumericMatrixWithReuse
  */
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateLogicalArray_730(size_t ndim, const size_t *dims);
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateLogicalArray_700(int ndim, const int *dims);
 
-/*
+/**
  * Create a two-dimensional array to hold logical data and
  * initializes each data element to false.
+ *
+ * \copydetails mxCreateNumericMatrixWithReuse
  */
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateLogicalMatrix_730(size_t m, size_t n);
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateLogicalMatrix_700(int m, int n);
 
-/*
+/**
  * Create a logical scalar mxArray having the specified value.
+ *
+ * \copydetails mxCreateNumericMatrixWithReuse
  */
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateLogicalScalar(bool value);
 
@@ -875,15 +865,17 @@ LIBMMWMATRIX_PUBLISHED_API_EXTERN_C bool mxIsLogicalScalar(const mxArray *pa);
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C bool mxIsLogicalScalarTrue(const mxArray *pa);
 
 
-/*
+/**
  * Create a double-precision scalar mxArray initialized to the
  * value specified
+ *
+ * \copydoc mxCreateNumericMatrixWithReuse
  */
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateDoubleScalar(double value);
 
 
-/*
- * Create a 2-Dimensional sparse array.
+/**
+ * \brief Create a 2-Dimensional sparse array.
  *
  * Z = mxCreateSparse(m,n,nzmax,cmplx_flag);
  * An m-by-n, real or complex, sparse matrix with room for nzmax nonzeros.
@@ -899,13 +891,17 @@ LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateDoubleScalar(double value);
  * by sparse algorithms.  Consequently, m can be "infinite".  The result
  * is a semi-infinite matrix with a finite number of columns and a finite,
  * but unspecified, number of nonzero rows.
+ *
+ * \copydetails mxCreateNumericMatrixWithReuse
  */
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateSparse_730(size_t m, size_t n, size_t nzmax, mxComplexity flag);
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateSparse_700(int m, int n, int nzmax, mxComplexity flag);
 
 
-/*
+/**
  * Create a 2-D sparse logical array
+ *
+ * \copydoc mxCreateSparseNumericMatrix
  */
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateSparseLogicalMatrix_730(size_t m, size_t n, size_t nzmax);
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateSparseLogicalMatrix_700(int m, int n, int nzmax);
@@ -939,71 +935,81 @@ LIBMMWMATRIX_PUBLISHED_API_EXTERN_C int mxGetString_700(const mxArray *pa, char 
  */
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C char *mxArrayToString(const mxArray *pa);
 
-/*
- * Create a NULL terminated C string from an mxArray of type mxCHAR_CLASS
- * The C style string is in UTF-8 encoding. The resulting 
- * string must be freed with mxFree. Returns NULL on out of memory or
- * non-character arrays.
- */
-
-LIBMMWMATRIX_PUBLISHED_API_EXTERN_C char *mxArrayToUTF8String(mxArray const *pa);
-
 
 /**
  * Create a 1-by-n string array initialized to str. The supplied string is
  * presumed to be in the local codepage encoding. The character data format
  * in the mxArray will be UTF-16.
+ *
+ * \copydetails mxCreateNumericMatrixWithReuse
  */
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateStringFromNChars_730(const char *str, size_t n);
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateStringFromNChars_700(const char *str, int n);
 
 
-/*
- * Create a 1-by-n string array initialized to null terminated string
+/**
+ * \brief Create a 1-by-n string array initialized to null terminated string
  * where n is the length of the string.
+ * 
+ * \param src_ptr  A pointer to a source string data
+ *
+ * \copydetails mxCreateNumericMatrixWithReuse
  */
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateString(const char *str);
 
-/*
- * Create a string array initialized to the strings in str.
+
+/**
+ * \copybrief mxCreateCharMatrixFromStrings_safe
+ *
+ * \copydetails mxCreateNumericMatrixWithReuse
  */
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateCharMatrixFromStrings_730(size_t m, const char **str);
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateCharMatrixFromStrings_700(int m, const char **str);
 
-/*
- * Create a 2-Dimensional cell array, with each cell initialized
- * to NULL.
+
+/**
+ * \copybrief create_cell
+ *
+ * \copydetails mxCreateNumericMatrixWithReuse 
  */
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateCellMatrix_730(size_t m, size_t n);
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateCellMatrix_700(int m, int n);
 
 
-/*
+/**
  * Create an N-Dimensional cell array, with each cell initialized
  * to NULL.
+ *
+ * \copydetails mxCreateNumericMatrixWithReuse
  */
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateCellArray_730(size_t ndim, const size_t *dims);
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateCellArray_700(int ndim, const int *dims);
 
-/*
- * Create a 2-Dimensional structure array having the specified fields;
- * initialize all values to NULL.
+
+/**
+ * \copybrief create_struct
+ *
+ * \copydetails mxCreateNumericMatrixWithReuse
  */
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateStructMatrix_730(size_t m, size_t n, int nfields, const char **fieldnames);
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateStructMatrix_700(int m, int n, int nfields, const char **fieldnames);
 
 
-/*
+/**
  * Create an N-Dimensional structure array having the specified fields;
  * initialize all values to NULL.
+ *
+ * \copydetails mxCreateNumericMatrixWithReuse
  */
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateStructArray_730(size_t ndim, const size_t *dims, int nfields,
 			     const char **fieldnames);
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxCreateStructArray_700(int ndim, const int *dims, int nfields,
                  const char **fieldnames);
 
-/*
+/**
  * Make a deep copy of an array, return a pointer to the copy.
+ *
+ * \copydetails mxCreateNumericMatrixWithReuse
  */
 LIBMMWMATRIX_PUBLISHED_API_EXTERN_C mxArray *mxDuplicateArray(const mxArray *in);
 

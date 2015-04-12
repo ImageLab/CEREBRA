@@ -20,26 +20,22 @@ HEADERS  += mainwindow.h \
     packetrendererglwidget.h \
     packetfilereader.h
 
-QMAKE_LFLAGS += -Wl,--large-address-aware
-
 FORMS    += mainwindow.ui
 
 RESOURCES += \
     shaderresource.qrc
 
-unix|win32: LIBS += -L$$PWD/ -llibsimple
-
 INCLUDEPATH += $$PWD/
 DEPENDPATH += $$PWD/
 
-win32:!win32-g++: PRE_TARGETDEPS += $$PWD/libsimple.lib
-else:unix|win32-g++: PRE_TARGETDEPS += $$PWD/liblibsimple.a
-
-unix|win32: LIBS += -L$$PWD/lib/extern/lib/win32/microsoft/ -llibmat
-
-unix|win32: LIBS += -L$$PWD/lib/extern/lib/win32/microsoft/ -llibeng
-
-unix|win32: LIBS += -L$$PWD/lib/extern/lib/win32/microsoft/ -llibmx
+win32:!win32-g++: PRE_TARGETDEPS += $$PWD/lib/libsimple.lib
+else:unix|win32-g++: PRE_TARGETDEPS += $$PWD/lib/liblibsimple.a
 
 INCLUDEPATH += $$PWD/lib/extern/include
 DEPENDPATH += $$PWD/lib/extern/include
+
+win32:!win32-g++: PRE_TARGETDEPS += $$PWD/lib/extern/lib/win32/microsoft/libeng.lib
+else:unix|win32-g++: PRE_TARGETDEPS += $$PWD/lib/extern/lib/win32/microsoft/liblibeng.a
+
+win32:!win32-g++: PRE_TARGETDEPS += $$PWD/lib/extern/lib/win32/microsoft/libmat.lib
+else:unix|win32-g++: PRE_TARGETDEPS += $$PWD/lib/extern/lib/win32/microsoft/liblibmat.a

@@ -4,10 +4,6 @@
  *Doc example  Chapter 5.
  */
 
-/* This file is used in conjunction with the %#external pragma, which is no longer supported
- * as of R2015a. However, we retain the file for test purposes.
- */
-
 #include "collect_one_external.h"
 #include <math.h>
 

@@ -5,6 +5,10 @@
 #include <QString>
 #include <QVector>
 #include <QtGui>
+#include <iostream>
+#include <cmath>
+#include "mat.h"
+#include "matrix.h"
 
 using namespace libsimple;
 
@@ -15,6 +19,8 @@ public:
     ~PacketFileReader();
 
     Packet *readPacketFromDirectory(QString directory);
+    void readMatFile(QString directory);
+    void cvmxPrintMatrix(const mxArray* mxarr);
 
 private:
 

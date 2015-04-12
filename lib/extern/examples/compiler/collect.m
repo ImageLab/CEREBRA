@@ -1,10 +1,7 @@
 
 % Doc example  Chapter 5.
 
-% Copyright 1999-2014 The MathWorks, Inc.
-
-% This file uses the %#external pragma, which is no longer supported
-% as of R2015a. However, we retain the file for test purposes.
+% Copyright 1999 The MathWorks, Inc.
 
 function collect
 
