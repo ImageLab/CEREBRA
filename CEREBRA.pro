@@ -25,17 +25,32 @@ FORMS    += mainwindow.ui
 RESOURCES += \
     shaderresource.qrc
 
+unix|win32: LIBS += -L$$PWD/lib -llibsimple
+
 INCLUDEPATH += $$PWD/
 DEPENDPATH += $$PWD/
 
 win32:!win32-g++: PRE_TARGETDEPS += $$PWD/lib/libsimple.lib
 else:unix|win32-g++: PRE_TARGETDEPS += $$PWD/lib/liblibsimple.a
 
+unix|win32: LIBS += -LC:/MATLAB/R2014/extern/lib/win32/microsoft/ -llibeng
+
 INCLUDEPATH += $$PWD/lib/extern/include
 DEPENDPATH += $$PWD/lib/extern/include
 
 win32:!win32-g++: PRE_TARGETDEPS += $$PWD/lib/extern/lib/win32/microsoft/libeng.lib
 else:unix|win32-g++: PRE_TARGETDEPS += $$PWD/lib/extern/lib/win32/microsoft/liblibeng.a
+
+unix|win32: LIBS += -L$$PWD/lib/extern/lib/win32/microsoft/ -llibmat
+
+INCLUDEPATH += $$PWD/lib/extern/include
+DEPENDPATH += $$PWD/lib/extern/include
+
+win32:!win32-g++: PRE_TARGETDEPS += $$PWD/lib/extern/lib/win32/microsoft/libmat.lib
+else:unix|win32-g++: PRE_TARGETDEPS += $$PWD/lib/extern/lib/win32/microsoft/liblibmat.a
+
+INCLUDEPATH += $$PWD/lib/extern/include
+DEPENDPATH += $$PWD/lib/extern/include
 
 win32:!win32-g++: PRE_TARGETDEPS += $$PWD/lib/extern/lib/win32/microsoft/libmat.lib
 else:unix|win32-g++: PRE_TARGETDEPS += $$PWD/lib/extern/lib/win32/microsoft/liblibmat.a

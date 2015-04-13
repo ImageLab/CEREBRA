@@ -6,9 +6,9 @@
 #include "mat.h"
 #include "matrix.h"
 
-#pragma comment(lib, "lib/libmx.lib")
-#pragma comment(lib, "lib/libeng.lib")
-#pragma comment(lib, "lib/libmat.lib")
+#pragma comment(lib, "libmx.lib")
+#pragma comment(lib, "libeng.lib")
+#pragma comment(lib, "libmat.lib")
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
