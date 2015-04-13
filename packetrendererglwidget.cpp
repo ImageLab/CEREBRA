@@ -318,10 +318,10 @@ void PacketRendererGLWidget::createVoxelTexture(const int row, const int column,
 
             for( int curInterp = 0; curInterp < interpolationLevel; curInterp++){
                 voxelBOData[curRow*column*interpolationLevel + curColumn*interpolationLevel + curInterp] = curIntensity + curInterp * interpolation;
-                cout << voxelBOData[curRow*column*interpolationLevel + curColumn*interpolationLevel + curInterp] << " ";
+                //cout << voxelBOData[curRow*column*interpolationLevel + curColumn*interpolationLevel + curInterp] << " ";
             }
         }
-        cout << endl;
+        //cout << endl;
 
         //last column
         int curColumn = column-1;

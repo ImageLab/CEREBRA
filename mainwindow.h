@@ -27,6 +27,7 @@ private:
 public slots:
     void loadButtonClicked();
     void startButtonClicked();
+    void loadMatFileButtonClicked();
 };
 
 #endif // MAINWINDOW_H

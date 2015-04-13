@@ -186,6 +186,13 @@
            </widget>
           </item>
           <item>
+           <widget class="QPushButton" name="pushButton">
+            <property name="text">
+             <string>Load MAT File</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QPushButton" name="quitButton">
             <property name="text">
              <string>Quit</string>
@@ -263,9 +270,26 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>pushButton</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>loadMatFileButtonClicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>771</x>
+     <y>742</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>745</x>
+     <y>571</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>loadButtonClicked()</slot>
   <slot>startButtonClicked()</slot>
+  <slot>loadMatFileButtonClicked()</slot>
  </slots>
 </ui>

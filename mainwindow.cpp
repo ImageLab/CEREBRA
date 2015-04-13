@@ -25,9 +25,22 @@ MainWindow::~MainWindow()
 
 void MainWindow::loadButtonClicked(){
 
+    QString directoryName = QFileDialog::getExistingDirectory();
+
+    if( !directoryName.isNull()){
+        ui->startButton->setEnabled(false);
+        ui->packetRendererGLWidget->setPacket( reader.readPacketFromDirectory( directoryName), directoryName);
+    }
+}
+
+void MainWindow::loadMatFileButtonClicked(){
+
     fileName = QFileDialog::getOpenFileName(this, tr("Open File"),"",tr("Files (*.mat*)"));
     if(fileName.length()== 0)
         return;
+
+    ui->startButton->setEnabled(true);
+
     QDir d = QFileInfo(fileName).absoluteDir();
     directory = d.absolutePath();
 
@@ -36,7 +49,6 @@ void MainWindow::loadButtonClicked(){
     if(mFile == NULL)
         cout << "error opening MAT file: " << endl;
 
-    const mxArray *pa = NULL;
     int ndir;
     const char **variables;
 
@@ -44,6 +56,10 @@ void MainWindow::loadButtonClicked(){
     if (variables == NULL)
       printf("Error reading directory of file");
 
+    ui->comboBox->addItem("");
+    ui->comboBox_2->addItem("");
+    ui->comboBox_3->addItem("");
+    ui->comboBox_4->addItem("");
 
     for(int k=0; k < ndir ; k++)
          ui->comboBox->addItem(QString(variables[k]));
@@ -53,16 +69,14 @@ void MainWindow::loadButtonClicked(){
          ui->comboBox_3->addItem(QString(variables[k]));
     for(int k=0; k < ndir ; k++)
          ui->comboBox_4->addItem(QString(variables[k]));
-
-
-    comboText = ui->comboBox->currentText();
-    cout << comboText.toStdString();
-    comboText2 = ui->comboBox_2->currentText();
-    cout << comboText2.toStdString();
 }
 
 void MainWindow::startButtonClicked()
 {
     if( !fileName.isNull())
-        ui->packetRendererGLWidget->setPacket(reader.readPacketFromDirectory( fileName), directory);
+        ui->packetRendererGLWidget->setPacket(reader.readPacketFromMatlab( fileName,
+                                                                           ui->comboBox->currentText(),
+                                                                           ui->comboBox_2->currentText(),
+                                                                           ui->comboBox_3->currentText(),
+                                                                           ui->comboBox_4->currentText()), directory);
 }
