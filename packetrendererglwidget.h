@@ -5,8 +5,10 @@
 #include <QObject>
 #include <QGLWidget>
 #include <QGLShaderProgram>
+#include <QGLFunctions>
 #include <QVector>
 #include "Packet.h"
+#include <QOpenGLFunctions_3_2_Core>
 
 /**
  * @brief The GLWidget class
@@ -18,7 +20,7 @@
 using namespace std;
 using namespace libsimple;
 
-class PacketRendererGLWidget : public QGLWidget
+class PacketRendererGLWidget : public QGLWidget, protected QOpenGLFunctions_3_2_Core
 {
     Q_OBJECT
 public:
@@ -111,14 +113,18 @@ private:
      */
     void updateAttributeArrays();
 
+    void initializeShader( int numberOfVoxels, int numberOfEdgePairs, int timeSeries);
+
     /**
      * @brief createTexture creates a texture in the working directory,
      * if specified. Otherwise it creates the texture where the executable
      * is located.
      */
-    void createVoxelTexture();
+    void createVoxelTexture( const int row, const int column, const int interpolationLevel);
     void createEdgePairTexture();
     void createTexture( QString textureName, vector< vector<float> > &intensityValues);
+
+
     QString getWorkingDirectory();
 
 private:
@@ -128,16 +134,27 @@ private:
 
     //shader variables
     QGLShaderProgram shaderProgram;
+    std::vector<unsigned int> voxelIndices;
+    std::vector<unsigned int> edgeIndices;
+    QVector<unsigned int> indicesQ;
     QVector<QVector4D> voxelVertices; //passed to gpu
-    QVector<QVector2D> voxelTextureCoordinates; //passed to gpu
+    QVector<QVector2D> voxelTextureIndex; //passed to gpu
     QVector<QVector4D> colors; //passed to gpu
     QVector<QVector4D> edgeVertices; //passed to gpu
     QVector<QVector2D> edgeTextureCoordinates; //passed to gpu
-    QVector2D textureOffset;
+    GLuint textureOffset;
     GLuint voxelTexture;
     GLuint edgeTexture;
     QMatrix4x4 projection;
     QMatrix4x4 modelView;
+
+    GLuint voxelIBO;
+    GLuint edgesIBO;
+
+    GLuint voxelBO;
+    GLuint voxelTBO;
+    GLuint edgesBO;
+    GLuint edgesTBO;
 
     /**
      * To handle rotation, zooming etc.

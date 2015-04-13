@@ -22,8 +22,7 @@ HEADERS  += mainwindow.h \
 
 FORMS    += mainwindow.ui
 
-RESOURCES += \
-    shaderresource.qrc
+RESOURCES +=
 
 unix|win32: LIBS += -L$$PWD/lib -llibsimple
 
@@ -32,8 +31,6 @@ DEPENDPATH += $$PWD/
 
 win32:!win32-g++: PRE_TARGETDEPS += $$PWD/lib/libsimple.lib
 else:unix|win32-g++: PRE_TARGETDEPS += $$PWD/lib/liblibsimple.a
-
-unix|win32: LIBS += -LC:/MATLAB/R2014/extern/lib/win32/microsoft/ -llibeng
 
 INCLUDEPATH += $$PWD/lib/extern/include
 DEPENDPATH += $$PWD/lib/extern/include
