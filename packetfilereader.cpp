@@ -1,4 +1,5 @@
 #include "packetfilereader.h"
+#include "mainwindow.h"
 #include "mat.h"
 #include "matrix.h"
 
@@ -47,8 +48,9 @@ Packet *PacketFileReader::readPacketFromDirectory(QString directory){
                 if( voxelIntensities[voxel].length() > 0)
                     (packet->intensities[voxel]).resize(voxelIntensities[voxel].length());
 
-                for( int intensity = 0; intensity < voxelIntensities[voxel].length(); intensity++)
+                for( int intensity = 0; intensity < voxelIntensities[voxel].length(); intensity++){
                     packet->intensities[voxel][intensity] = voxelIntensities[voxel][intensity];
+                }
             }
         }
     }

@@ -16,6 +16,8 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     QString fileName;
     QString directory;
+    QString comboText;
+    QString comboText2;
     ~MainWindow();
 
 private:

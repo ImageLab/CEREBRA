@@ -22,15 +22,13 @@ HEADERS  += mainwindow.h \
 
 FORMS    += mainwindow.ui
 
-RESOURCES +=
-
-unix|win32: LIBS += -L$$PWD/lib -llibsimple
+unix|win32: LIBS += -L$$PWD/ -llibsimple
 
 INCLUDEPATH += $$PWD/
 DEPENDPATH += $$PWD/
 
-win32:!win32-g++: PRE_TARGETDEPS += $$PWD/lib/libsimple.lib
-else:unix|win32-g++: PRE_TARGETDEPS += $$PWD/lib/liblibsimple.a
+win32:!win32-g++: PRE_TARGETDEPS += $$PWD/libsimple.lib
+else:unix|win32-g++: PRE_TARGETDEPS += $$PWD/liblibsimple.a
 
 INCLUDEPATH += $$PWD/lib/extern/include
 DEPENDPATH += $$PWD/lib/extern/include

@@ -48,7 +48,7 @@ void PacketRendererGLWidget::initializeGL(){
     glEnable( GL_DEPTH_TEST);
     qglClearColor( QColor( Qt::gray));
 
-    initializeShader(1, 1, 1);
+    initializeShader();
 }
 
 void PacketRendererGLWidget::paintGL(){
@@ -211,13 +211,13 @@ void PacketRendererGLWidget::updateAttributeArrays(){
 //        }
 //    }
 
-    initializeShader( packetToRender->vXYZ.size(), packetToRender->edges.size(), (packetToRender->intensities)[0].size());
+    initializeShader();
 
     shaderProgram.setAttributeArray( "vPosition", voxelVertices.constData());
     shaderProgram.setAttributeArray( "voxelIndex", voxelTextureIndex.constData());
 }
 
-void PacketRendererGLWidget::initializeShader( int numberOfVoxels, int numberOfEdgePairs, int timeSeries){
+void PacketRendererGLWidget::initializeShader(){
 
     if( shaderProgram.isLinked()){
         shaderProgram.disableAttributeArray( "vPosition");
@@ -316,9 +316,12 @@ void PacketRendererGLWidget::createVoxelTexture(const int row, const int column,
             float curIntensity = packetToRender->intensities[curRow][curColumn];
             float interpolation = (float)(nextIntensity - curIntensity)/(float)interpolationLevel;
 
-            for( int curInterp = 0; curInterp < interpolationLevel; curInterp++)
+            for( int curInterp = 0; curInterp < interpolationLevel; curInterp++){
                 voxelBOData[curRow*column*interpolationLevel + curColumn*interpolationLevel + curInterp] = curIntensity + curInterp * interpolation;
+                cout << voxelBOData[curRow*column*interpolationLevel + curColumn*interpolationLevel + curInterp] << " ";
+            }
         }
+        cout << endl;
 
         //last column
         int curColumn = column-1;

@@ -113,7 +113,7 @@ private:
      */
     void updateAttributeArrays();
 
-    void initializeShader( int numberOfVoxels, int numberOfEdgePairs, int timeSeries);
+    void initializeShader();
 
     /**
      * @brief createTexture creates a texture in the working directory,

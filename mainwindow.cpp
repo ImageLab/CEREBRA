@@ -55,7 +55,10 @@ void MainWindow::loadButtonClicked(){
          ui->comboBox_4->addItem(QString(variables[k]));
 
 
-
+    comboText = ui->comboBox->currentText();
+    cout << comboText.toStdString();
+    comboText2 = ui->comboBox_2->currentText();
+    cout << comboText2.toStdString();
 }
 
 void MainWindow::startButtonClicked()
