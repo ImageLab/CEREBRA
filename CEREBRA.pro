@@ -22,30 +22,13 @@ HEADERS  += mainwindow.h \
 
 FORMS    += mainwindow.ui
 
-unix|win32: LIBS += -L$$PWD/ -llibsimple
-
 INCLUDEPATH += $$PWD/
 DEPENDPATH += $$PWD/
 
-win32:!win32-g++: PRE_TARGETDEPS += $$PWD/libsimple.lib
-else:unix|win32-g++: PRE_TARGETDEPS += $$PWD/liblibsimple.a
-
 INCLUDEPATH += $$PWD/lib/extern/include
 DEPENDPATH += $$PWD/lib/extern/include
 
-win32:!win32-g++: PRE_TARGETDEPS += $$PWD/lib/extern/lib/win32/microsoft/libeng.lib
-else:unix|win32-g++: PRE_TARGETDEPS += $$PWD/lib/extern/lib/win32/microsoft/liblibeng.a
-
-unix|win32: LIBS += -L$$PWD/lib/extern/lib/win32/microsoft/ -llibmat
-
-INCLUDEPATH += $$PWD/lib/extern/include
-DEPENDPATH += $$PWD/lib/extern/include
-
-win32:!win32-g++: PRE_TARGETDEPS += $$PWD/lib/extern/lib/win32/microsoft/libmat.lib
-else:unix|win32-g++: PRE_TARGETDEPS += $$PWD/lib/extern/lib/win32/microsoft/liblibmat.a
-
-INCLUDEPATH += $$PWD/lib/extern/include
-DEPENDPATH += $$PWD/lib/extern/include
-
-win32:!win32-g++: PRE_TARGETDEPS += $$PWD/lib/extern/lib/win32/microsoft/libmat.lib
-else:unix|win32-g++: PRE_TARGETDEPS += $$PWD/lib/extern/lib/win32/microsoft/liblibmat.a
+LIBS += -L"$$_PRO_FILE_PWD_/lib" -llibsimple
+LIBS += -L"$$_PRO_FILE_PWD_/lib/extern/lib/win32/microsoft" -llibeng
+LIBS += -L"$$_PRO_FILE_PWD_/lib/extern/lib/win32/microsoft" -llibmat
+LIBS += -L"$$_PRO_FILE_PWD_/lib/extern/lib/win32/microsoft" -llibmx

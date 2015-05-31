@@ -4,11 +4,6 @@
 #include "matrix.h"
 #include <QMainWindow>
 
-#pragma comment(lib, "libmx.lib")
-#pragma comment(lib, "libeng.lib")
-#pragma comment(lib, "libmat.lib")
-
-
 PacketFileReader::PacketFileReader()
 {
 

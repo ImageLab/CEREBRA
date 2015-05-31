@@ -23,6 +23,8 @@ public:
 private:
     Ui::MainWindow *ui;
     PacketFileReader reader;
+    QGLAbstractScene *m_scene;
+    QGLSceneNode *m_rootNode;
 
 public slots:
     void loadButtonClicked();

@@ -7,6 +7,7 @@
 #include <QGLShaderProgram>
 #include <QGLFunctions>
 #include <QVector>
+
 #include "Packet.h"
 #include <QOpenGLFunctions_3_2_Core>
 
@@ -167,6 +168,9 @@ private:
     QTimer *aTimer;
 
     bool shouldAnimate;
+
+    QGLAbstractScene *m_scene;
+    QGLSceneNode *m_rootNode;
 
 private slots:
      void animate();

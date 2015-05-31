@@ -1,7 +1,7 @@
 /*
  * PUBLISHED header for emlrt, the runtime library for MATLAB Coder
  *
- * Copyright 1984-2013 The MathWorks, Inc.
+ * Copyright 1984-2014 The MathWorks, Inc.
  *
  */
 
@@ -36,17 +36,19 @@
 #include <setjmp.h>
 #include <stdio.h>
 #include "matrix.h"
+#include <stdarg.h>
 
 /*
  * MATLAB INTERNAL USE ONLY :: MEX Version
  */
-#define EMLRT_VERSION_R2014A 0x2014A
-#define EMLRT_VERSION_INFO  EMLRT_VERSION_R2014A
+#define EMLRT_VERSION_R2015A 0x2015A
+#define EMLRT_VERSION_INFO  EMLRT_VERSION_R2015A
 
 /*
  * MATLAB INTERNAL USE ONLY :: Thread local context type
  */
-typedef const void *emlrtCTX;
+typedef void *emlrtCTX;
+typedef const void *emlrtConstCTX;
 
 /*
  * MATLAB INTERNAL USE ONLY :: MEX error function
@@ -61,9 +63,11 @@ typedef void (*EmlrtHeapReferenceFreeFcn)(void *);
 /*
  * MATLAB INTERNAL USE ONLY :: Prototypes of OpenMP lock functions.
  */
-typedef void (*EmlrtLockeeFunction)(emlrtCTX aTLS, void *aData);
-typedef void (*EmlrtLockerFunction)(EmlrtLockeeFunction aLockee, emlrtCTX aTLS, void *aData);
-extern void emlrtLockerFunction(EmlrtLockeeFunction aLockee, emlrtCTX aTLS, void *aData);
+typedef void (*EmlrtLockeeFunction)(emlrtConstCTX aTLS, void *aData);
+typedef void (*EmlrtLockerFunction)(EmlrtLockeeFunction aLockee, emlrtConstCTX aTLS, void *aData);
+extern void emlrtLockerFunction(EmlrtLockeeFunction aLockee, emlrtConstCTX aTLS, void *aData);
+extern emlrtCTX emlrtGetRootTLSGlobal(void);
+#define emlrtCallLockeeFunction(emlrtLockeeFcnPtr,emlrtLockeeArg0,emlrtLockeeArg1) emlrtLockeeFcnPtr(emlrtLockeeArg0,emlrtLockeeArg1)
 
 /*
  * MATLAB INTERNAL USE ONLY :: FileManager file identifier and pointer
@@ -74,7 +78,7 @@ typedef FILE * emlrtFilePtr;
 /*
  * MATLAB INTERNAL USE ONLY :: Prototypes of file functions.
  */
-typedef emlrtFilePtr (*EmlrtFopenFunction)(const char *aFname, const char *aPerm);
+typedef emlrtFilePtr(*EmlrtFopenFunction)(const char *aFname, const char *aPerm);
 typedef int (*EmlrtFcloseFunction)(emlrtFilePtr aPtr);
 extern emlrtFilePtr emlrtFopenFunction(const char *aFname, const char *aPerm);
 extern int emlrtFcloseFunction(emlrtFilePtr aPtr);
@@ -103,8 +107,8 @@ typedef struct emlrtRSInfo
  */
 typedef struct emlrtStack
 {
-    emlrtRSInfo        *site;
-    void               *tls;
+    emlrtRSInfo             *site;
+    emlrtCTX                 tls;
     const struct emlrtStack *prev;
 } emlrtStack;
 
@@ -188,10 +192,6 @@ typedef emlrtRTEInfo emlrtMCInfo;
 /* MATLAB INTERNAL USE ONLY :: Reference to global runtime context */
 extern emlrtContext emlrtContextGlobal;
 
-/* MATLAB INTERNAL USE ONLY :: Reference to master thread local context */
-extern void *emlrtRootTLSGlobal;
-
-
 /*
  * MATLAB INTERNAL USE ONLY :: Initialize file I/O
  */
@@ -231,6 +231,16 @@ EXTERN_C LIBEMLRT_API boolean_T emlrtFmgrClose(const emlrtCTX aTLS,
 EXTERN_C LIBEMLRT_API boolean_T emlrtFmgrCloseAll(const emlrtCTX aTLS);
 
 /*
+ * MATLAB INTERNAL USE ONLY :: Dispatch to mexPrintf
+ */
+EXTERN_C LIBEMLRT_API int emlrtMexVprintf(const char *aFmt, va_list aVargs);
+
+/*
+* MATLAB INTERNAL USE ONLY :: Dispatch to mexPrintf
+*/
+EXTERN_C LIBEMLRT_API int emlrtMexPrintf(emlrtConstCTX aTLS, const char *aFmt, ...);
+
+/*
  * MATLAB INTERNAL USE ONLY :: Query first-time sentinel
  */
 EXTERN_C LIBEMLRT_API boolean_T emlrtFirstTimeR2012b(emlrtCTX aTLS);
@@ -246,9 +256,9 @@ EXTERN_C LIBEMLRT_API const mxArray *emlrtAlias(const mxArray *in);
 EXTERN_C LIBEMLRT_API const mxArray *emlrtAliasP(const mxArray *in);
 
 /*
- * MATLAB INTERNAL USE ONLY :: Return an mxArray to MATLAB
+ * MATLAB INTERNAL USE ONLY :: Return a vector of mxArray to MATLAB
  */
-EXTERN_C LIBEMLRT_API mxArray *emlrtReturnArrayR2009a(const mxArray *pa);
+EXTERN_C LIBEMLRT_API void emlrtReturnArrays(const int aNlhs, mxArray *aLHS[], const mxArray *const aRHS[]);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Protect mxArray from being overwritten if necessary
@@ -308,21 +318,6 @@ EXTERN_C LIBEMLRT_API void emlrtAssignP(const mxArray **lhs, const mxArray *rhs)
 /*
  * MATLAB INTERNAL USE ONLY :: Array bounds check
  */
-#define emlrtDynamicBoundsCheckFastR2012b(index, lo, hi, location, tls) \
-    ((index >= lo) && (index < hi) ? index : emlrtDynamicBoundsCheckR2012b(index, lo, hi, location, tls))
-
-#define emlrtDynamicBoundsCheckFastInt64(index, lo, hi, location, tls) \
-    ((index >= lo) && (index < hi) ? index : emlrtDynamicBoundsCheckInt64(index, lo, hi, location, tls))
-
-#define emlrtIntegerCheckFastR2012b(index, location, tls)               \
-    (((int)index == index) ? index : emlrtIntegerCheckR2012b((double)index, location, tls))
-
-#define emlrtNonNegativeCheckFastR2012b(index, location, tls)           \
-    ((index >= 0) ? index : emlrtNonNegativeCheckR2012b((double)index, location, tls))
-
-/*
- * MATLAB INTERNAL USE ONLY :: Array bounds check
- */
 EXTERN_C LIBEMLRT_API int32_T emlrtBoundsCheckR2012b(int32_T indexValue, emlrtBCInfo *aInfo, emlrtCTX aTLS);
 
 #ifdef INT_TYPE_64_IS_SUPPORTED
@@ -335,20 +330,20 @@ EXTERN_C LIBEMLRT_API int64_T emlrtBoundsCheckInt64(const int64_T indexValue, co
 /*
  * MATLAB INTERNAL USE ONLY :: Dynamic array bounds check
  */
-EXTERN_C LIBEMLRT_API int32_T emlrtDynamicBoundsCheckR2012b(int32_T indexValue, int32_T loBound, int32_T hiBound, emlrtBCInfo *aInfo, emlrtCTX aTLS);
+EXTERN_C LIBEMLRT_API int32_T emlrtDynamicBoundsCheckR2012b(int32_T indexValue, int32_T loBound, int32_T hiBound, emlrtBCInfo *aInfo, emlrtConstCTX aTLS);
 
 #ifdef INT_TYPE_64_IS_SUPPORTED
 /*
  * MATLAB INTERNAL USE ONLY :: Dynamic array bounds check for int64
  */
-EXTERN_C LIBEMLRT_API int64_T emlrtDynamicBoundsCheckInt64(const int64_T indexValue, const int32_T loBound, const int32_T hiBound, const emlrtBCInfo * const aInfo, const emlrtCTX aTLS);
+EXTERN_C LIBEMLRT_API int64_T emlrtDynamicBoundsCheckInt64(const int64_T indexValue, const int32_T loBound, const int32_T hiBound, const emlrtBCInfo * const aInfo, const emlrtConstCTX aTLS);
 #endif
 
 /*
  * MATLAB INTERNAL USE ONLY :: Perform integer multiplication, raise runtime error
  *                             if the operation overflows.
  */
-EXTERN_C LIBEMLRT_API size_t emlrtSizeMulR2012b(size_t s1, size_t s2, const emlrtRTEInfo *aInfo, emlrtCTX aTLS);
+EXTERN_C LIBEMLRT_API size_t emlrtSizeMulR2012b(size_t s1, size_t s2, const emlrtRTEInfo *aInfo, emlrtConstCTX aTLS);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Create an mxArray string from a C string
@@ -373,7 +368,7 @@ EXTERN_C LIBEMLRT_API const mxArray *emlrtCreateStructArray(int32_T ndim, const 
 /*
  * MATLAB INTERNAL USE ONLY :: Create an enum
  */
-EXTERN_C LIBEMLRT_API const mxArray *emlrtCreateEnumR2012b(emlrtCTX aTLS, const char *name, const mxArray *data);
+EXTERN_C LIBEMLRT_API const mxArray *emlrtCreateEnumR2012b(emlrtConstCTX aTLS, const char *name, const mxArray *data);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Add a field to a struct matrix mxArray
@@ -388,7 +383,7 @@ EXTERN_C LIBEMLRT_API const mxArray *emlrtAddField(const mxArray *mxStruct, cons
 /*
  * MATLAB INTERNAL USE ONLY :: Get a field from a struct matrix mxArray
  */
-EXTERN_C LIBEMLRT_API const mxArray *emlrtGetFieldR2013a(emlrtCTX aTLS, const mxArray *mxStruct, int aIndex, const char *fldName);
+EXTERN_C LIBEMLRT_API const mxArray *emlrtGetFieldR2013a(emlrtConstCTX aTLS, const mxArray *mxStruct, int aIndex, const char *fldName);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Create a cell array
@@ -408,7 +403,7 @@ EXTERN_C LIBEMLRT_API const mxArray *emlrtSetCell(const mxArray *mxCellArray, in
 /*
  * MATLAB INTERNAL USE ONLY :: Get a cell element
  */
-EXTERN_C LIBEMLRT_API const mxArray *emlrtGetCell(emlrtCTX aTLS, const mxArray *mxCell, int aIndex);
+EXTERN_C LIBEMLRT_API const mxArray *emlrtGetCell(emlrtConstCTX aTLS, const emlrtMsgIdentifier *aMsgId, const mxArray *mxCell, int aIndex);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Check if empty
@@ -453,7 +448,7 @@ EXTERN_C LIBEMLRT_API const mxArray *emlrtCreateCharArray(int32_T ndim, const in
 /*
  * MATLAB INTERNAL USE ONLY :: Create a FI mxArray from a value mxArray
  */
-EXTERN_C LIBEMLRT_API const mxArray *emlrtCreateFIR2013b(emlrtCTX aTLS, const mxArray *fimath, const mxArray *ntype, const char *fitype, const mxArray *fival, const bool fmIsLocal, const bool aForceComplex);
+EXTERN_C LIBEMLRT_API const mxArray *emlrtCreateFIR2013b(emlrtConstCTX aTLS, const mxArray *fimath, const mxArray *ntype, const char *fitype, const mxArray *fival, const bool fmIsLocal, const bool aForceComplex);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Set the dimensions of an mxArray.
@@ -486,6 +481,11 @@ EXTERN_C LIBEMLRT_API void emlrtMatlabDataToCFormat(const mxArray* inputMx, cons
 EXTERN_C LIBEMLRT_API void emlrtMatlabDataFromCFormat(const mxArray* outputMx, const mxArray* cformatMx);
 
 /*
+ * MATLAB INTERNAL USE ONLY :: Try to coerce mxArray to provided class; return same mxArray if not possible.
+ */
+EXTERN_C LIBEMLRT_API const mxArray *emlrtCoerceToClassR2014b(const mxArray* inputMx, const char *className);
+
+/*
  * MATLAB INTERNAL USE ONLY :: Destroy an mxArray
  */
 EXTERN_C LIBEMLRT_API void emlrtDestroyArray(const mxArray **pa);
@@ -503,7 +503,7 @@ EXTERN_C LIBEMLRT_API void emlrtFreeImagIfZero(const mxArray *pa);
 /*
  * MATLAB INTERNAL USE ONLY :: Display an mxArray
  */
-EXTERN_C LIBEMLRT_API void emlrtDisplayR2012b(const mxArray *pa, const char *name, emlrtMCInfo* aLoc, emlrtCTX aTLS);
+EXTERN_C LIBEMLRT_API void emlrtDisplayR2012b(const mxArray *pa, const char *name, emlrtMCInfo* aLoc, emlrtConstCTX aTLS);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Double check parameters
@@ -520,22 +520,22 @@ typedef struct
 /*
  * MATLAB INTERNAL USE ONLY :: Check that d can be safely cast to int.
  */
-EXTERN_C LIBEMLRT_API real_T emlrtIntegerCheckR2012b(real_T d, emlrtDCInfo *aInfo, emlrtCTX aTLS);
+EXTERN_C LIBEMLRT_API real_T emlrtIntegerCheckR2012b(real_T d, emlrtDCInfo *aInfo, emlrtConstCTX aTLS);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Check that d is not NaN.
  */
-EXTERN_C LIBEMLRT_API real_T emlrtNotNanCheckR2012b(real_T d, emlrtDCInfo *aInfo, emlrtCTX aTLS);
+EXTERN_C LIBEMLRT_API real_T emlrtNotNanCheckR2012b(real_T d, emlrtDCInfo *aInfo, emlrtConstCTX aTLS);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Check that d >= 0.
  */
-EXTERN_C LIBEMLRT_API real_T emlrtNonNegativeCheckR2012b(real_T d, emlrtDCInfo *aInfo, emlrtCTX aTLS);
+EXTERN_C LIBEMLRT_API real_T emlrtNonNegativeCheckR2012b(real_T d, emlrtDCInfo *aInfo, emlrtConstCTX aTLS);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Check that the loop has an integer number of iterations.
  */
-EXTERN_C LIBEMLRT_API void emlrtForLoopVectorCheckR2012b(real_T start, real_T step, real_T end, mxClassID classID, int n, emlrtRTEInfo *aInfo, emlrtCTX aTLS);
+EXTERN_C LIBEMLRT_API void emlrtForLoopVectorCheckR2012b(real_T start, real_T step, real_T end, mxClassID classID, int n, emlrtRTEInfo *aInfo, emlrtConstCTX aTLS);
 
 /*
  * MATLAB INTERNAL USE ONLY :: fetch a global variable
@@ -550,7 +550,7 @@ EXTERN_C LIBEMLRT_API const mxArray * emlrtGetGlobalVariable(const char *name);
 /*
  * MATLAB INTERNAL USE ONLY :: Call out to MATLAB
  */
-EXTERN_C LIBEMLRT_API const mxArray * emlrtCallMATLABR2012b(emlrtCTX aTLS, int32_T nlhs, const mxArray **plhs, int32_T nrhs, const mxArray **prhs, const char *cmd, boolean_T tmp, emlrtMCInfo* aLoc);
+EXTERN_C LIBEMLRT_API const mxArray * emlrtCallMATLABR2012b(emlrtConstCTX aTLS, int32_T nlhs, const mxArray **plhs, int32_T nrhs, const mxArray **prhs, const char *cmd, boolean_T tmp, emlrtMCInfo* aLoc);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Maintain heap memory check information upon entering a mex function.
@@ -576,12 +576,12 @@ EXTERN_C LIBEMLRT_API void emlrtHeapMemCheckUnloadMex(emlrtCTX aTLS);
 /*
  * MATLAB INTERNAL USE ONLY :: malloc with memory integrity check
  */
-EXTERN_C LIBEMLRT_API void* emlrtMalloc(emlrtCTX aTLS, size_t aSize);
+EXTERN_C LIBEMLRT_API void* emlrtMalloc(emlrtConstCTX aTLS, size_t aSize);
 
 /*
  * MATLAB INTERNAL USE ONLY :: calloc with memory integrity check
  */
-EXTERN_C LIBEMLRT_API void* emlrtCalloc(emlrtCTX aTLS, size_t aNum, size_t aSize);
+EXTERN_C LIBEMLRT_API void* emlrtCalloc(emlrtConstCTX aTLS, size_t aNum, size_t aSize);
 
 /*
  * MATLAB INTERNAL USE ONLY :: free with memory integrity check
@@ -606,7 +606,7 @@ EXTERN_C LIBEMLRT_API void emlrtFreeMex(void *aPtr);
 /*
  * MATLAB INTERNAL USE ONLY :: Enter a new function within a MEX call.
  */
-EXTERN_C LIBEMLRT_API void emlrtHeapReferenceStackEnterFcnR2012b(emlrtCTX aTLS);
+EXTERN_C LIBEMLRT_API void emlrtHeapReferenceStackEnterFcnR2012b(emlrtConstCTX aTLS);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Enter a new function within a MEX call.
@@ -616,12 +616,12 @@ EXTERN_C LIBEMLRT_API void emlrtHeapReferenceStackEnterFcn(void);
 /*
  * MATLAB INTERNAL USE ONLY :: Leave a scope within a MEX call.
  */
-EXTERN_C LIBEMLRT_API void emlrtHeapReferenceStackLeaveScope(emlrtCTX aTLS, int aAllocCount);
+EXTERN_C LIBEMLRT_API void emlrtHeapReferenceStackLeaveScope(emlrtConstCTX aTLS, int aAllocCount);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Leave a function within a MEX call.
  */
-EXTERN_C LIBEMLRT_API void emlrtHeapReferenceStackLeaveFcnR2012b(emlrtCTX aTLS);
+EXTERN_C LIBEMLRT_API void emlrtHeapReferenceStackLeaveFcnR2012b(emlrtConstCTX aTLS);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Leave a function within a MEX call.
@@ -631,12 +631,12 @@ EXTERN_C LIBEMLRT_API void emlrtHeapReferenceStackLeaveFcn(void);
 /*
  * MATLAB INTERNAL USE ONLY :: Push a new entry to the heap reference stack.
  */
-EXTERN_C LIBEMLRT_API void emlrtPushHeapReferenceStackR2012b(emlrtCTX aTLS, void *aHeapReference, EmlrtHeapReferenceFreeFcn aFreeFcn);
+EXTERN_C LIBEMLRT_API void emlrtPushHeapReferenceStackR2012b(emlrtConstCTX aTLS, void *aHeapReference, EmlrtHeapReferenceFreeFcn aFreeFcn);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Initialize a character mxArray
  */
-EXTERN_C LIBEMLRT_API void emlrtInitCharArrayR2013a(emlrtCTX aTLS, int32_T n, const mxArray *a, const char *s);
+EXTERN_C LIBEMLRT_API void emlrtInitCharArrayR2013a(emlrtConstCTX aTLS, int32_T n, const mxArray *a, const char *s);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Initialize a logical mxArray
@@ -651,7 +651,7 @@ EXTERN_C LIBEMLRT_API void emlrtInitIntegerArrayFromMultiword(const mxArray *aOu
 /*
  * MATLAB INTERNAL USE ONLY :: Export a numeric mxArray
  */
-EXTERN_C LIBEMLRT_API void emlrtExportNumericArrayR2013b(emlrtCTX aTLS, const mxArray *aOut, const void *aInData, int32_T aElementSize);
+EXTERN_C LIBEMLRT_API void emlrtExportNumericArrayR2013b(emlrtConstCTX aTLS, const mxArray *aOut, const void *aInData, int32_T aElementSize);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Auto-generated mexFunction
@@ -670,7 +670,7 @@ typedef struct emlrtEntryPoint
 /*
  * MATLAB INTERNAL USE ONLY :: Lookup an entry point
  */
-EXTERN_C LIBEMLRT_API emlrtMexFunction emlrtGetMethod(int nrhs, const mxArray *prhs[], struct emlrtEntryPoint *aEntryPoints, int aNumEntryPoints);
+EXTERN_C LIBEMLRT_API int emlrtGetEntryPointIndex(int nrhs, const mxArray *prhs[], const char *aEntryPointNames[], int aNumEntryPoints);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Decode wide character strings in mxArray struct array.
@@ -694,59 +694,81 @@ class EmlrtParallelRunTimeError
 #endif
 
 /*
+ * MATLAB INTERNAL USE ONLY :: General runtime error exception
+ */
+#ifdef __cplusplus
+class EmlrtRunTimeError
+{
+  public:
+    EmlrtRunTimeError();
+    virtual ~EmlrtRunTimeError();
+};
+#endif
+
+/*
  * MATLAB INTERNAL USE ONLY :: Report if we are in a parallel region
  */
-EXTERN_C LIBEMLRT_API boolean_T emlrtIsInParallelRegion(emlrtCTX aTLS);
+EXTERN_C LIBEMLRT_API boolean_T emlrtIsInParallelRegion(emlrtConstCTX aTLS);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Enter a parallel region.
  */
-EXTERN_C LIBEMLRT_API void emlrtEnterParallelRegion(emlrtCTX aTLS, boolean_T aInParallelRegion);
+EXTERN_C LIBEMLRT_API void emlrtEnterParallelRegion(emlrtConstCTX aTLS, boolean_T aInParallelRegion);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Exit a parallel region.
  */
-EXTERN_C LIBEMLRT_API void emlrtExitParallelRegion(emlrtCTX aTLS, boolean_T aInParallelRegion);
+EXTERN_C LIBEMLRT_API void emlrtExitParallelRegion(emlrtConstCTX aTLS, boolean_T aInParallelRegion);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Check if we're running on the MATLAB thread.
  */
-EXTERN_C LIBEMLRT_API bool emlrtIsMATLABThread(emlrtCTX aTLS);
+EXTERN_C LIBEMLRT_API bool emlrtIsMATLABThread(emlrtConstCTX aTLS);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Record the occurrence of a parallel warning.
  */
-EXTERN_C LIBEMLRT_API bool emlrtSetWarningFlag(emlrtCTX aTLS);
+EXTERN_C LIBEMLRT_API bool emlrtSetWarningFlag(emlrtConstCTX aTLS);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Report a parallel runtime error
  */
-EXTERN_C LIBEMLRT_API void emlrtReportParallelRunTimeError(emlrtCTX aTLS);
+EXTERN_C LIBEMLRT_API void emlrtReportParallelRunTimeError(emlrtConstCTX aTLS);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Retrieve runtime error
  */
-EXTERN_C LIBEMLRT_API void emlrtRetrieveRunTimeError(emlrtCTX aTLS, char *aMsgBuf, uint32_T bufLen);
+EXTERN_C LIBEMLRT_API void emlrtRetrieveRunTimeError(emlrtConstCTX aTLS, char *aMsgBuf, uint32_T bufLen);
+
+/*
+ * MATLAB INTERNAL USE ONLY :: Get runtime error status
+ */
+EXTERN_C LIBEMLRT_API int emlrtGetErrorStatus(emlrtConstCTX aTLS);
+
+/*
+ * MATLAB INTERNAL USE ONLY :: Get Simulink coverage ID for the current block instance
+ */
+EXTERN_C LIBEMLRT_API uint32_T emlrtGetSimCovId(emlrtConstCTX aTLS);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Ensure active thread is MATLAB
  */
-EXTERN_C LIBEMLRT_API void emlrtAssertMATLABThread(emlrtCTX aTLS, emlrtMCInfo* aLoc);
+EXTERN_C LIBEMLRT_API void emlrtAssertMATLABThread(emlrtConstCTX aTLS, emlrtMCInfo* aLoc);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Push the current jmp_buf environment
  */
-EXTERN_C LIBEMLRT_API void emlrtPushJmpBuf(emlrtCTX aTLS, jmp_buf *volatile *aJBEnviron);
+EXTERN_C LIBEMLRT_API void emlrtPushJmpBuf(emlrtConstCTX aTLS, jmp_buf *volatile *aJBEnviron);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Pop the current jmp_buf environment
  */
-EXTERN_C LIBEMLRT_API void emlrtPopJmpBuf(emlrtCTX aTLS, jmp_buf *volatile *aJBEnviron);
+EXTERN_C LIBEMLRT_API void emlrtPopJmpBuf(emlrtConstCTX aTLS, jmp_buf *volatile *aJBEnviron);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Set the current jmp_buf environment
  */
-EXTERN_C LIBEMLRT_API void emlrtSetJmpBuf(emlrtCTX aTLS, jmp_buf *aJBEnviron);
+EXTERN_C LIBEMLRT_API void emlrtSetJmpBuf(emlrtConstCTX aTLS, jmp_buf *aJBEnviron);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Create a shallow copy of an mxArray
@@ -756,22 +778,22 @@ EXTERN_C LIBEMLRT_API const mxArray * emlrtCreateReference(const mxArray *pa);
 /*
  * MATLAB INTERNAL USE ONLY :: Division by zero error
  */
-EXTERN_C LIBEMLRT_API void emlrtDivisionByZeroErrorR2012b(const emlrtRTEInfo *aInfo, emlrtCTX aTLS);
+EXTERN_C LIBEMLRT_API void emlrtDivisionByZeroErrorR2012b(const emlrtRTEInfo *aInfo, emlrtConstCTX aTLS);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Integer overflow error
  */
-EXTERN_C LIBEMLRT_API void emlrtIntegerOverflowErrorR2012b(const emlrtRTEInfo *aInfo, emlrtCTX aTLS);
+EXTERN_C LIBEMLRT_API void emlrtIntegerOverflowErrorR2012b(const emlrtRTEInfo *aInfo, emlrtConstCTX aTLS);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Raise C heap allocation failure
  */
-EXTERN_C LIBEMLRT_API void emlrtHeapAllocationErrorR2012b(const emlrtRTEInfo *aInfo, emlrtCTX aTLS);
+EXTERN_C LIBEMLRT_API void emlrtHeapAllocationErrorR2012b(const emlrtRTEInfo *aInfo, emlrtConstCTX aTLS);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Error with given message ID and args.
  */
-EXTERN_C LIBEMLRT_API void emlrtErrorWithMessageIdR2012b(emlrtCTX aTLS, const emlrtRTEInfo *aInfo, const char *aMsgID, int aArgCount, ...);
+EXTERN_C LIBEMLRT_API void emlrtErrorWithMessageIdR2012b(emlrtConstCTX aTLS, const emlrtRTEInfo *aInfo, const char *aMsgID, int aArgCount, ...);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Error with given message ID and args.
@@ -792,16 +814,16 @@ EXTERN_C LIBEMLRT_API char* emlrtTranslateUTF16MessagetoLCPstring(const CHAR16_T
 
 typedef struct
 {
-    char * MexFileName;
-    char * TimeStamp;
-    char * buildDir;
+    const char * MexFileName;
+    const char * TimeStamp;
+    const char * buildDir;
     int32_T numFcns;
     int32_T numHistogramBins;
 } emlrtLocationLoggingFileInfoType;
 
 typedef struct
 {
-    char * FunctionName;
+    const char * FunctionName;
     int32_T FunctionID;
     int32_T numInstrPoints;
 } emlrtLocationLoggingFunctionInfoType;
@@ -862,6 +884,11 @@ EXTERN_C LIBEMLRT_API bool emlrtLocationLoggingClearLog(const char* const MexFil
  * MATLAB INTERNAL USE ONLY :: List entries in LocationLogging Info
  */
 EXTERN_C LIBEMLRT_API mxArray* emlrtLocationLoggingListLogs(void);
+
+/*
+ * MATLAB INTERNAL USE ONLY :: Add instrumentation results to FPT Repository
+ */
+EXTERN_C LIBEMLRT_API void addResultsToFPTRepository(const char* const blkSID);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Initialize a runtime stack
@@ -944,12 +971,6 @@ EXTERN_C LIBEMLRT_API void emlrtSerializeLogical(boolean_T b);
 EXTERN_C LIBEMLRT_API void emlrtSerializeInitialize(boolean_T isDeserialize, boolean_T isVerification, const char *projectName, uint32_T aCheckSumLen, const uint32_T *aChecksum);
 
 /*
- * MATLAB INTERNAL USE ONLY :: Check for Ctrl+C (break)
- */
-#define emlrtBreakCheckFastR2012b(aFlagVar, aTls)       \
-    if(*aFlagVar) { emlrtBreakCheckR2012b(aTls); }
-
-/*
  * MATLAB INTERNAL USE ONLY :: Get the address of the Ctrl-C flag.
  */
 EXTERN_C LIBEMLRT_API const volatile char* emlrtGetBreakCheckFlagAddressR2012b(void);
@@ -957,7 +978,7 @@ EXTERN_C LIBEMLRT_API const volatile char* emlrtGetBreakCheckFlagAddressR2012b(v
 /*
  * MATLAB INTERNAL USE ONLY :: Check for Ctrl+C (break)
  */
-EXTERN_C LIBEMLRT_API void emlrtBreakCheckR2012b(emlrtCTX aTLS);
+EXTERN_C LIBEMLRT_API void emlrtBreakCheckR2012b(emlrtConstCTX aTLS);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Check for simulation stop
@@ -967,60 +988,44 @@ EXTERN_C LIBEMLRT_API void emlrtBreakSimulation(emlrtCTX aTLS);
 /*
  * MATLAB INTERNAL USE ONLY :: Equality check for 1-D sizes
  */
-#define emlrtSizeEqCheck1DFastR2012b(dim1, dim2, aInfo, aTLS)           \
-    if(dim1 != dim2) { emlrtSizeEqCheck1DR2012b(dim1, dim2, aInfo, aTLS); }
-
-#define emlrtDimSizeEqCheckFastR2012b(dim1, dim2, aInfo, aTLS)          \
-    if(dim1 != dim2) { emlrtDimSizeEqCheckR2012b(dim1, dim2, aInfo, aTLS); }
-
-#define emlrtDimSizeGeqCheckFastR2012b(dim1, dim2, aInfo, aTLS)         \
-    if(dim1 < dim2) { emlrtDimSizeGeqCheckR2012b(dim1, dim2, aInfo, aTLS); }
-
-#define emlrtSizeEqCheck2DFastR2012b(dims1, dims2, aInfo, aTLS)         \
-    if(dims1[0] != dims2[0] || dims1[1] != dims2[1]) { emlrtSizeEqCheckNDR2012b(dims1, dims2, aInfo, aTLS); }
-
-
-/*
- * MATLAB INTERNAL USE ONLY :: Equality check for 1-D sizes
- */
-EXTERN_C LIBEMLRT_API void emlrtSizeEqCheck1DR2012b(int32_T dim1, int32_T dim2, emlrtECInfo *aInfo, emlrtCTX aTLS);
+EXTERN_C LIBEMLRT_API void emlrtSizeEqCheck1DR2012b(int32_T dim1, int32_T dim2, emlrtECInfo *aInfo, emlrtConstCTX aTLS);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Equality check for size vectors
  */
-EXTERN_C LIBEMLRT_API void emlrtSizeEqCheckNDR2012b(const int32_T* dims1, const int32_T* dims2, emlrtECInfo *aInfo, emlrtCTX aTLS);
+EXTERN_C LIBEMLRT_API void emlrtSizeEqCheckNDR2012b(const int32_T* dims1, const int32_T* dims2, emlrtECInfo *aInfo, emlrtConstCTX aTLS);
 
 /*
  * MATLAB INTERNAL USE ONLY :: equality check
  */
-EXTERN_C LIBEMLRT_API void emlrtDimSizeEqCheckR2012b(int32_T dim1, int32_T dim2, emlrtECInfo *aInfo, emlrtCTX aTLS);
+EXTERN_C LIBEMLRT_API void emlrtDimSizeEqCheckR2012b(int32_T dim1, int32_T dim2, emlrtECInfo *aInfo, emlrtConstCTX aTLS);
 
 /*
  * MATLAB INTERNAL USE ONLY :: greater than or equal to check
  */
-EXTERN_C LIBEMLRT_API void emlrtDimSizeGeqCheckR2012b(int32_T dim1, int32_T dim2, emlrtECInfo *aInfo, emlrtCTX aTLS);
+EXTERN_C LIBEMLRT_API void emlrtDimSizeGeqCheckR2012b(int32_T dim1, int32_T dim2, emlrtECInfo *aInfo, emlrtConstCTX aTLS);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Check size compatibility for A(I1,..IN) = B assignment in MATLAB.
  */
-EXTERN_C LIBEMLRT_API void emlrtSubAssignSizeCheckR2012b(const int32_T* dims1, int32_T nDims1, const int32_T* dims2, int32_T nDims2, emlrtECInfo *aInfo, emlrtCTX aTLS);
+EXTERN_C LIBEMLRT_API void emlrtSubAssignSizeCheckR2012b(const int32_T* dims1, int32_T nDims1, const int32_T* dims2, int32_T nDims2, emlrtECInfo *aInfo, emlrtConstCTX aTLS);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Check that at least one of the two given size vectors describe a proper
  * matrix (not a vector).
  */
-EXTERN_C LIBEMLRT_API void emlrtMatrixMatrixIndexCheckR2012b(const int32_T* dims1, int32_T nDims1, const int32_T* dims2, int32_T nDims2, emlrtECInfo *aInfo, emlrtCTX aTLS);
+EXTERN_C LIBEMLRT_API void emlrtMatrixMatrixIndexCheckR2012b(const int32_T* dims1, int32_T nDims1, const int32_T* dims2, int32_T nDims2, emlrtECInfo *aInfo, emlrtConstCTX aTLS);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Check that at least one of the two given size vectors describe a proper
  * matrix (not a vector).
  */
-EXTERN_C LIBEMLRT_API void emlrtVectorVectorIndexCheckR2012b(int32_T sizeL_0, int32_T sizeL_1, int32_T sizeR_0, int32_T sizeR_1, emlrtECInfo *aInfo, emlrtCTX aTLS);
+EXTERN_C LIBEMLRT_API void emlrtVectorVectorIndexCheckR2012b(int32_T sizeL_0, int32_T sizeL_1, int32_T sizeR_0, int32_T sizeR_1, emlrtECInfo *aInfo, emlrtConstCTX aTLS);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Allocate thread-local storage.
  */
-EXTERN_C LIBEMLRT_API void *emlrtAllocTLS(emlrtCTX aMaster, int32_T aTeamTID);
+EXTERN_C LIBEMLRT_API void *emlrtAllocTLS(emlrtConstCTX aMaster, int32_T aTeamTID);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Allocate thread local storage for a parallel region.
@@ -1030,17 +1035,17 @@ EXTERN_C LIBEMLRT_API int32_T emlrtAllocRegionTLSs(emlrtCTX aTLS, boolean_T aInP
 /*
  * MATLAB INTERNAL USE ONLY :: Allocate the root thread-local storage.
  */
-EXTERN_C LIBEMLRT_API void emlrtCreateRootTLS(void **rootTLSPtr, struct emlrtContext *aContext, EmlrtLockerFunction aLockerFunction, int32_T aNumProcs);
+EXTERN_C LIBEMLRT_API void emlrtCreateRootTLS(emlrtCTX *aRootTLS, struct emlrtContext *aContext, EmlrtLockerFunction aLockerFunction, int32_T aNumProcs);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Allocate the root thread-local storage in Simulink mode.
  */
-EXTERN_C LIBEMLRT_API void emlrtCreateSimulinkRootTLS(emlrtCTX *aRootTLS, struct emlrtContext *aContext, EmlrtLockerFunction aLockerFunction, int32_T aNumProcs);
+EXTERN_C LIBEMLRT_API void emlrtCreateSimulinkRootTLS(emlrtCTX *aRootTLS, struct emlrtContext *aContext, EmlrtLockerFunction aLockerFunction, int32_T aNumProcs, boolean_T aSimThruJIT, uint32_T aCovId);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Deallocate the root thread-local storage.
  */
-EXTERN_C LIBEMLRT_API void emlrtDestroyRootTLS(void **rootTLSPtr);
+EXTERN_C LIBEMLRT_API void emlrtDestroyRootTLS(emlrtCTX *aRootTLS);
 
 EXTERN_C LIBEMLRT_API char * emlrtExtractMessageId(const struct emlrtMsgIdentifier *aMsgId);
 
@@ -1052,14 +1057,14 @@ EXTERN_C LIBEMLRT_API void emlrtCheckClass(const char *msgName, const mxArray *p
 /*
  * MATLAB INTERNAL USE ONLY :: Check the size, class and complexness of an mxArray
  */
-EXTERN_C LIBEMLRT_API void emlrtCheckBuiltInR2012b(emlrtCTX aTLS,
+EXTERN_C LIBEMLRT_API void emlrtCheckBuiltInR2012b(emlrtConstCTX aTLS,
                                                    const struct emlrtMsgIdentifier *aMsgId, const mxArray *pa,
                                                    const char *className, boolean_T complex, uint32_T nDims, const void *pDims);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Check the size, class and complexness of a variable-size mxArray
  */
-EXTERN_C LIBEMLRT_API void emlrtCheckVsBuiltInR2012b(emlrtCTX aTLS,
+EXTERN_C LIBEMLRT_API void emlrtCheckVsBuiltInR2012b(emlrtConstCTX aTLS,
                                                      const struct emlrtMsgIdentifier *aMsgId, const mxArray *pa,
                                                      const char *className, boolean_T complex, uint32_T nDims, const void *pDims,
                                                      const boolean_T *aDynamic, int32_T *aOutSizes);
@@ -1067,7 +1072,7 @@ EXTERN_C LIBEMLRT_API void emlrtCheckVsBuiltInR2012b(emlrtCTX aTLS,
 /*
  * MATLAB INTERNAL USE ONLY :: Check the type of a FI mxArray
  */
-EXTERN_C LIBEMLRT_API void emlrtCheckFiR2012b(emlrtCTX aTLS,
+EXTERN_C LIBEMLRT_API void emlrtCheckFiR2012b(emlrtConstCTX aTLS,
                                               const struct emlrtMsgIdentifier *aMsgId, const mxArray *aFi, boolean_T aComplex,
                                               uint32_T aNDims, const void *aVDims,
                                               const mxArray *aFimath, const mxArray *aNumericType);
@@ -1075,7 +1080,7 @@ EXTERN_C LIBEMLRT_API void emlrtCheckFiR2012b(emlrtCTX aTLS,
 /*
  * MATLAB INTERNAL USE ONLY :: Check the type of a variable-size FI mxArray
  */
-EXTERN_C LIBEMLRT_API void emlrtCheckVsFiR2012b(emlrtCTX aTLS,
+EXTERN_C LIBEMLRT_API void emlrtCheckVsFiR2012b(emlrtConstCTX aTLS,
                                                 const struct emlrtMsgIdentifier *aMsgId, const mxArray *aFi, boolean_T aComplex,
                                                 uint32_T aNDims, const void *aVDims,
                                                 const boolean_T *aDynamic, const mxArray *aFimath, const mxArray *aNumericType);
@@ -1083,12 +1088,12 @@ EXTERN_C LIBEMLRT_API void emlrtCheckVsFiR2012b(emlrtCTX aTLS,
 /*
  * MATLAB INTERNAL USE ONLY :: Check the type of a static-size struct mxArray
  */
-EXTERN_C LIBEMLRT_API void emlrtCheckStructR2012b(emlrtCTX aTLS, const emlrtMsgIdentifier *aMsgId, const mxArray *s, int32_T nFields, const char **fldNames, uint32_T nDims, const void *pDims);
+EXTERN_C LIBEMLRT_API void emlrtCheckStructR2012b(emlrtConstCTX aTLS, const emlrtMsgIdentifier *aMsgId, const mxArray *s, int32_T nFields, const char **fldNames, uint32_T nDims, const void *pDims);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Check the type of a variable-size struct mxArray
  */
-EXTERN_C LIBEMLRT_API void emlrtCheckVsStructR2012b(emlrtCTX aTLS, const struct emlrtMsgIdentifier *aMsgId, const mxArray *s,
+EXTERN_C LIBEMLRT_API void emlrtCheckVsStructR2012b(emlrtConstCTX aTLS, const struct emlrtMsgIdentifier *aMsgId, const mxArray *s,
                                                     int32_T nFields, const char **fldNames,
                                                     uint32_T nDims, const void *pDims,
                                                     const boolean_T *aDynamic, int32_T *aOutSizes);
@@ -1096,22 +1101,22 @@ EXTERN_C LIBEMLRT_API void emlrtCheckVsStructR2012b(emlrtCTX aTLS, const struct 
 /*
  * MATLAB INTERNAL USE ONLY :: Check the checksum of an mxArray
  */
-EXTERN_C LIBEMLRT_API void emlrtCheckArrayChecksumR2014a(emlrtCTX aTLS, const char *aName, const uint32_T *aCtCsVal, const mxArray *aRtMxArray, const boolean_T aIsGlobalVar);
+EXTERN_C LIBEMLRT_API void emlrtCheckArrayChecksumR2014a(emlrtConstCTX aTLS, const char *aName, const uint32_T *aCtCsVal, const mxArray *aRtMxArray, const boolean_T aIsGlobalVar);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Check the type of a static-size struct mxArray
  */
-EXTERN_C LIBEMLRT_API void emlrtCheckEnumR2012b(emlrtCTX aTLS, const char *enumName, int32_T nEnumElements, const char **enumNames, const int32_T *enumValues);
+EXTERN_C LIBEMLRT_API void emlrtCheckEnumR2012b(emlrtConstCTX aTLS, const char *enumName, int32_T nEnumElements, const char **enumNames, const int32_T *enumValues);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Import a character array.
  */
-EXTERN_C LIBEMLRT_API void emlrtImportCharArray(const mxArray *aSrc, char_T *aDst, int32_T aNumel);
+EXTERN_C LIBEMLRT_API void emlrtImportCharArrayR2014b(emlrtConstCTX aTLS, const mxArray *aSrc, char_T *aDst, int32_T aNumel);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Import a character.
  */
-EXTERN_C LIBEMLRT_API void emlrtImportChar(const mxArray *aSrc, char_T *aDst);
+EXTERN_C LIBEMLRT_API void emlrtImportCharR2014b(emlrtConstCTX aTLS, const mxArray *aSrc, char_T *aDst);
 
 /*
  * MATLAB INTERNAL USE ONLY :: Set the actual size of a variable-size array
@@ -1142,6 +1147,21 @@ EXTERN_C LIBEMLRT_API void emlrtRandu(real_T * const aRanduBuffer, const int32_T
  * MATLAB INTERNAL USE ONLY :: Get double normal random values
  */
 EXTERN_C LIBEMLRT_API void emlrtRandn(real_T * const aRandnBuffer, const int32_T aNumel);
+
+/*
+ * MATLAB INTERNAL USE ONLY :: Check the type of a static-sized cell mxArray
+ */
+EXTERN_C LIBEMLRT_API void emlrtCheckCell(emlrtConstCTX aTLS, const emlrtMsgIdentifier *aMsgId, const mxArray *s,
+                                          uint32_T nDims, const void *pDims, const boolean_T *aDynamic);
+
+/*
+ * MATLAB INTERNAL USE ONLY :: Check the type of a variable-sized cell mxArray
+ * and assign the size of the mxArray to aOutSizes
+ */
+EXTERN_C LIBEMLRT_API void emlrtCheckVsCell(emlrtConstCTX aTLS, const struct emlrtMsgIdentifier *aMsgId, const mxArray *s,
+                                            uint32_T nDims, const void *pDims,
+                                            const boolean_T *aDynamic, int32_T *aOutSizes);
+
 
 #ifdef __WATCOMC__
 #pragma aux emlrtIntegerCheckR2009b value [8087];
