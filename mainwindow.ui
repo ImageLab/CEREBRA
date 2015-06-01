@@ -174,12 +174,15 @@
                <property name="text">
                 <string>Min Value</string>
                </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
               </widget>
              </item>
              <item>
-              <widget class="QPlainTextEdit" name="minValueTextField">
+              <widget class="QLineEdit" name="minValueTextField">
                <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
@@ -187,13 +190,10 @@
                <property name="maximumSize">
                 <size>
                  <width>80</width>
-                 <height>25</height>
+                 <height>16777215</height>
                 </size>
                </property>
-               <property name="readOnly">
-                <bool>false</bool>
-               </property>
-               <property name="plainText">
+               <property name="text">
                 <string>0</string>
                </property>
               </widget>
@@ -223,12 +223,15 @@
                <property name="text">
                 <string>Max Value</string>
                </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
               </widget>
              </item>
              <item>
-              <widget class="QPlainTextEdit" name="maxValueTextField">
+              <widget class="QLineEdit" name="maxValueTextField">
                <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
@@ -236,10 +239,10 @@
                <property name="maximumSize">
                 <size>
                  <width>80</width>
-                 <height>25</height>
+                 <height>16777215</height>
                 </size>
                </property>
-               <property name="plainText">
+               <property name="text">
                 <string>1</string>
                </property>
               </widget>
@@ -434,13 +437,61 @@
   </connection>
   <connection>
    <sender>minValueTextField</sender>
-   <signal>textChanged()</signal>
+   <signal>textEdited(QString)</signal>
    <receiver>MainWindow</receiver>
-   <slot>minValueTextChanged()</slot>
+   <slot>minValueTextEdited(QString)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>566</x>
-     <y>408</y>
+     <y>405</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>511</x>
+     <y>383</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>maxValueTextField</sender>
+   <signal>textEdited(QString)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>maxValueTextEdited(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>962</x>
+     <y>405</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>511</x>
+     <y>383</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>thresholdSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>thresholdSliderValueChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>758</x>
+     <y>463</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>511</x>
+     <y>383</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>rangeSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>rangeSliderValueChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>753</x>
+     <y>513</y>
     </hint>
     <hint type="destinationlabel">
      <x>511</x>
@@ -453,6 +504,9 @@
   <slot>loadButtonClicked()</slot>
   <slot>loadMatFileButtonClicked()</slot>
   <slot>displayButtonClicked()</slot>
-  <slot>minValueTextChanged()</slot>
+  <slot>minValueTextEdited(QString)</slot>
+  <slot>maxValueTextEdited(QString)</slot>
+  <slot>thresholdSliderValueChanged(int)</slot>
+  <slot>rangeSliderValueChanged(int)</slot>
  </slots>
 </ui>

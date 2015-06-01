@@ -12,6 +12,15 @@ MainWindow::MainWindow(QWidget *parent) :
 {
 
     ui->setupUi(this);
+
+    ui->minValueTextField->setValidator( new QDoubleValidator(INT_MIN, INT_MAX, 3, this));
+    ui->maxValueTextField->setValidator( new QDoubleValidator(INT_MIN, INT_MAX, 3, this));
+
+    minValue = ui->minValueTextField->text().toFloat();
+    maxValue = ui->maxValueTextField->text().toFloat();
+
+    ui->thresholdSlider->setRange(0, 100);
+    ui->rangeSlider->setRange(0, 100);
 }
 
 MainWindow::~MainWindow()
@@ -82,7 +91,47 @@ void MainWindow::displayButtonClicked()
                                                                            ui->comboBox_4->currentText()), directory);
 }
 
-void MainWindow::minValueTextChanged(){
+void MainWindow::minValueTextEdited(QString text){
+
+    int charAscii = text.toStdString().c_str()[text.length()-1];
+
+    //if no text left
+    if( charAscii == 4)
+        minValue = 0.0;
+    else{
+        float newMinValue = ui->minValueTextField->text().toFloat();
+        if( newMinValue > maxValue)
+            ui->minValueTextField->setText(QString::number(maxValue));
+
+        minValue = ui->minValueTextField->text().toFloat();
+    }
+
+}
+
+void MainWindow::maxValueTextEdited(QString text){
+
+    int charAscii = text.toStdString().c_str()[text.length()-1];
+
+    //if no text left
+    if( charAscii == 4)
+        maxValue = 0.0;
+    else{
+
+        float newMaxValue = ui->maxValueTextField->text().toFloat();
+        if( newMaxValue < minValue)
+            ui->maxValueTextField->setText(QString::number(minValue));
+
+        maxValue = ui->maxValueTextField->text().toFloat();
+    }
+}
+
+void MainWindow::thresholdSliderValueChanged( int value){
 
 
 }
+
+void MainWindow::rangeSliderValueChanged(int value){
+
+
+}
+
