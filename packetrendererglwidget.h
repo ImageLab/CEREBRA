@@ -97,6 +97,11 @@ public:
      */
     void setWorkingDirectory( QString workingDir);
 
+    void setThreshold( float threshold);
+    void setMinValue( float minValue);
+    void setMaxValue( float maxValue);
+    void setRange( float range);
+
 //auxiliary functions
 private:
 
@@ -156,6 +161,11 @@ private:
     GLuint voxelTBO;
     GLuint edgesBO;
     GLuint edgesTBO;
+
+    float threshold;
+    float range;
+    float minValue;
+    float maxValue;
 
     /**
      * To handle rotation, zooming etc.

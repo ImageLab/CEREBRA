@@ -20,6 +20,11 @@ PacketRendererGLWidget::PacketRendererGLWidget( QWidget *parent) : QGLWidget( pa
     aTimer = new QTimer;
     connect(aTimer,SIGNAL(timeout()),SLOT(animate()));
     shouldAnimate = true;
+
+    minValue = 0.0;
+    maxValue = 1.0;
+    threshold = 0.5;
+    range = 100;
 }
 
 PacketRendererGLWidget::~PacketRendererGLWidget(){
@@ -46,6 +51,8 @@ void PacketRendererGLWidget::initializeGL(){
 
     //gl attributes
     glEnable( GL_DEPTH_TEST);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable( GL_BLEND );
     qglClearColor( QColor( Qt::gray));
 
     initializeShader();
@@ -233,6 +240,10 @@ void PacketRendererGLWidget::initializeShader(){
                                 "in vec2 voxelIndex;\n"
                                 "//in int edgePairIndex;\n"
 
+                                "uniform float minThreshold;\n"
+                                "uniform float maxThreshold;\n"
+                                "uniform float minValue;\n"
+                                "uniform float maxValue;\n"
                                 "uniform int textureOffset;\n"
                                 "uniform mat4 modelView;\n"
                                 "uniform mat4 projection;\n"
@@ -243,9 +254,12 @@ void PacketRendererGLWidget::initializeShader(){
 
                                 "void main(void){\n"
 
-                                    "float r = texelFetch(u_tbo_tex, int(voxelIndex.x) + textureOffset).r;\n"
+                                    "float r = ((texelFetch(u_tbo_tex, int(voxelIndex.x) + textureOffset).r)-minValue)/(maxValue - minValue);\n"
                                     "gl_Position = projection * modelView * vPosition;\n"
+                                    "if( r > maxThreshold || r < minThreshold)\n"
                                     "color = vec4(r, 1-r, 0.0, 1.0);\n"
+                                    "else\n"
+                                    "color = vec4(r, 1-r, 0.0, 0.0);\n"
                                 "}";
 
     QString fragmentShaderSource = "#version 430\n"
@@ -262,8 +276,18 @@ void PacketRendererGLWidget::initializeShader(){
     shaderProgram.addShaderFromSourceCode(QGLShader::Vertex, vertexShaderSource);
     shaderProgram.addShaderFromSourceCode(QGLShader::Fragment, fragmentShaderSource);
 
+    float gap = ((float)(maxValue - minValue)/(float)2)*(this->range/(float)100);
+
+    float minThreshold = (threshold - gap < 0)?0:(threshold-gap);
+    float maxThreshold = (threshold + gap > maxValue)?maxValue:(threshold+gap);
+
     shaderProgram.link();
     shaderProgram.bind();
+
+    shaderProgram.setUniformValue( "minThreshold", minThreshold);
+    shaderProgram.setUniformValue( "maxThreshold", maxThreshold);
+    shaderProgram.setUniformValue( "maxValue", maxValue);
+    shaderProgram.setUniformValue( "minValue", minValue);
 
     shaderProgram.enableAttributeArray( "vPosition");
     shaderProgram.enableAttributeArray( "voxelIndex");
@@ -297,6 +321,16 @@ void PacketRendererGLWidget::setPacket(Packet *packet, QString workingDirectory)
 
     textureOffset = 0;
     shaderProgram.setUniformValue( "textureOffset", textureOffset);
+
+    float gap = ((float)(maxValue - minValue)/(float)2)*(this->range/(float)100);
+
+    float minThreshold = (threshold - gap < 0)?0:(threshold-gap);
+    float maxThreshold = (threshold + gap > maxValue)?maxValue:(threshold+gap);
+
+    shaderProgram.setUniformValue( "minThreshold", minThreshold);
+    shaderProgram.setUniformValue( "maxThreshold", maxThreshold);
+    shaderProgram.setUniformValue( "maxValue", maxValue);
+    shaderProgram.setUniformValue( "minValue", minValue);
 
     updateAttributeArrays();
     updateMatrices();
@@ -389,4 +423,47 @@ QString PacketRendererGLWidget::getWorkingDirectory(){
         workingDirectory = qApp->applicationDirPath();
 
     return workingDirectory;
+}
+
+void PacketRendererGLWidget::setThreshold( float threshold){
+
+    float gap = ((float)(maxValue - minValue)/(float)2)*(this->range/(float)100);
+    this->threshold = threshold;
+    float minThreshold = (threshold - gap < 0)?0:(threshold-gap);
+    float maxThreshold = (threshold + gap > maxValue)?maxValue:(threshold+gap);
+
+    if( shaderProgram.isLinked()){
+        shaderProgram.setUniformValue( "minThreshold", minThreshold);
+        shaderProgram.setUniformValue( "maxThreshold", maxThreshold);
+    }
+}
+
+void PacketRendererGLWidget::setMinValue( float minValue){
+
+    this->minValue = minValue;
+
+    if( shaderProgram.isLinked())
+        shaderProgram.setUniformValue( "minValue", minValue);
+}
+
+void PacketRendererGLWidget::setMaxValue( float maxValue){
+
+    this->maxValue = maxValue;
+
+    if( shaderProgram.isLinked())
+        shaderProgram.setUniformValue( "maxValue", maxValue);
+}
+
+void PacketRendererGLWidget::setRange( float range){
+
+    this->range = range;
+    float gap = ((float)(maxValue - minValue)/(float)2)*(this->range/(float)100);
+
+    float minThreshold = (threshold - gap < 0)?0:(threshold-gap);
+    float maxThreshold = (threshold + gap > maxValue)?maxValue:(threshold+gap);
+
+    if( shaderProgram.isLinked()){
+        shaderProgram.setUniformValue( "minThreshold", minThreshold);
+        shaderProgram.setUniformValue( "maxThreshold", maxThreshold);
+    }
 }

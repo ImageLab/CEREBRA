@@ -16,11 +16,13 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->minValueTextField->setValidator( new QDoubleValidator(INT_MIN, INT_MAX, 3, this));
     ui->maxValueTextField->setValidator( new QDoubleValidator(INT_MIN, INT_MAX, 3, this));
 
-    minValue = ui->minValueTextField->text().toFloat();
-    maxValue = ui->maxValueTextField->text().toFloat();
-
     ui->thresholdSlider->setRange(0, 100);
     ui->rangeSlider->setRange(0, 100);
+
+    setMinValue(ui->minValueTextField->text().toFloat());
+    setMaxValue(ui->maxValueTextField->text().toFloat());
+    setThreshold(ui->thresholdSlider->minimum());
+    setRange(ui->rangeSlider->minimum());
 }
 
 MainWindow::~MainWindow()
@@ -97,15 +99,16 @@ void MainWindow::minValueTextEdited(QString text){
 
     //if no text left
     if( charAscii == 4)
-        minValue = 0.0;
+        setMinValue(0.0);
     else{
         float newMinValue = ui->minValueTextField->text().toFloat();
         if( newMinValue > maxValue)
             ui->minValueTextField->setText(QString::number(maxValue));
 
-        minValue = ui->minValueTextField->text().toFloat();
+        setMinValue(ui->minValueTextField->text().toFloat());
     }
 
+    updateThresholdSliderValue( ui->thresholdSlider->value());
 }
 
 void MainWindow::maxValueTextEdited(QString text){
@@ -114,24 +117,56 @@ void MainWindow::maxValueTextEdited(QString text){
 
     //if no text left
     if( charAscii == 4)
-        maxValue = 0.0;
+        setMaxValue(0.0);
     else{
 
         float newMaxValue = ui->maxValueTextField->text().toFloat();
         if( newMaxValue < minValue)
             ui->maxValueTextField->setText(QString::number(minValue));
 
-        maxValue = ui->maxValueTextField->text().toFloat();
+        setMaxValue(ui->maxValueTextField->text().toFloat());
     }
+
+    updateThresholdSliderValue( ui->thresholdSlider->value());
 }
 
 void MainWindow::thresholdSliderValueChanged( int value){
 
+    updateThresholdSliderValue( value);
+}
 
+void MainWindow::updateThresholdSliderValue( int value){
+
+    setThreshold(minValue + ((float)(maxValue-minValue)*(float)value/ui->thresholdSlider->maximum()));
+    ui->thresholdValue->setText(QString::number(threshold));
 }
 
 void MainWindow::rangeSliderValueChanged(int value){
 
-
+    setRange(value);
+    ui->rangeValuePercent->setText(QString::number(range) + "%");
 }
 
+void MainWindow::setThreshold( float threshold){
+
+    this->threshold = threshold;
+    ui->packetRendererGLWidget->setThreshold( threshold);
+}
+
+void MainWindow::setMinValue( float minValue){
+
+    this->minValue = minValue;
+    ui->packetRendererGLWidget->setMinValue( minValue);
+}
+
+void MainWindow::setMaxValue( float maxValue){
+
+    this->maxValue = maxValue;
+    ui->packetRendererGLWidget->setMaxValue( maxValue);
+}
+
+void MainWindow::setRange( float range){
+
+    this->range = range;
+    ui->packetRendererGLWidget->setRange( range);
+}

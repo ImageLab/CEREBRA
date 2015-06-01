@@ -38,6 +38,13 @@ public slots:
     void maxValueTextEdited( QString text);
     void thresholdSliderValueChanged( int value);
     void rangeSliderValueChanged(int value);
+
+private:
+    void updateThresholdSliderValue( int value);
+    void setThreshold( float threshold);
+    void setMinValue( float minValue);
+    void setMaxValue( float maxValue);
+    void setRange( float range);
 };
 
 #endif // MAINWINDOW_H
