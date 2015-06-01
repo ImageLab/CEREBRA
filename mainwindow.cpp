@@ -81,3 +81,8 @@ void MainWindow::displayButtonClicked()
                                                                            ui->comboBox_3->currentText(),
                                                                            ui->comboBox_4->currentText()), directory);
 }
+
+void MainWindow::minValueTextChanged(){
+
+
+}

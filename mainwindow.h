@@ -28,6 +28,7 @@ public slots:
     void loadButtonClicked();
     void displayButtonClicked();
     void loadMatFileButtonClicked();
+    void minValueTextChanged();
 };
 
 #endif // MAINWINDOW_H

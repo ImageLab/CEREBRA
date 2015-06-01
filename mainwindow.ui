@@ -177,7 +177,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QPlainTextEdit" name="plainTextEdit">
+              <widget class="QPlainTextEdit" name="minValueTextField">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                  <horstretch>0</horstretch>
@@ -226,7 +226,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QPlainTextEdit" name="plainTextEdit_2">
+              <widget class="QPlainTextEdit" name="maxValueTextField">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                  <horstretch>0</horstretch>
@@ -264,14 +264,14 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_9">
             <item>
-             <widget class="QSlider" name="horizontalSlider">
+             <widget class="QSlider" name="thresholdSlider">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="label_7">
+             <widget class="QLabel" name="thresholdValue">
               <property name="text">
                <string>0</string>
               </property>
@@ -294,14 +294,14 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_14">
           <item>
-           <widget class="QSlider" name="horizontalSlider_2">
+           <widget class="QSlider" name="rangeSlider">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_10">
+           <widget class="QLabel" name="rangeValuePercent">
             <property name="text">
              <string>0%</string>
             </property>
@@ -432,10 +432,27 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>minValueTextField</sender>
+   <signal>textChanged()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>minValueTextChanged()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>566</x>
+     <y>408</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>511</x>
+     <y>383</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>loadButtonClicked()</slot>
   <slot>loadMatFileButtonClicked()</slot>
   <slot>displayButtonClicked()</slot>
+  <slot>minValueTextChanged()</slot>
  </slots>
 </ui>
