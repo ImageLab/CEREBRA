@@ -24,7 +24,7 @@ void MainWindow::loadButtonClicked(){
     QString directoryName = QFileDialog::getExistingDirectory();
 
     if( !directoryName.isNull()){
-        ui->startButton->setEnabled(false);
+        ui->displayButton->setEnabled(false);
         ui->packetRendererGLWidget->setPacket( reader.readPacketFromDirectory( directoryName), directoryName);
     }
 }
@@ -35,15 +35,18 @@ void MainWindow::loadMatFileButtonClicked(){
     if(fileName.length()== 0)
         return;
 
-    ui->startButton->setEnabled(true);
+    ui->displayButton->setEnabled(true);
 
     QDir d = QFileInfo(fileName).absoluteDir();
     directory = d.absolutePath();
 
     MATFile *mFile = NULL;
     mFile = matOpen(fileName.toStdString().c_str(),"r");
-    if(mFile == NULL)
+    if(mFile == NULL){
         cout << "error opening MAT file: " << endl;
+        ui->matlabTab->setEnabled(false);
+        return;
+    }
 
     int ndir;
     const char **variables;
@@ -65,9 +68,11 @@ void MainWindow::loadMatFileButtonClicked(){
          ui->comboBox_3->addItem(QString(variables[k]));
     for(int k=0; k < ndir ; k++)
          ui->comboBox_4->addItem(QString(variables[k]));
+
+    ui->matlabTab->setEnabled(true);
 }
 
-void MainWindow::startButtonClicked()
+void MainWindow::displayButtonClicked()
 {
     if( !fileName.isNull())
         ui->packetRendererGLWidget->setPacket(reader.readPacketFromMatlab( fileName,

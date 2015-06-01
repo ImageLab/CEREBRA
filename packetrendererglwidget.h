@@ -169,9 +169,6 @@ private:
 
     bool shouldAnimate;
 
-    QGLAbstractScene *m_scene;
-    QGLSceneNode *m_rootNode;
-
 private slots:
      void animate();
 };

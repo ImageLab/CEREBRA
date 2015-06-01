@@ -23,12 +23,10 @@ public:
 private:
     Ui::MainWindow *ui;
     PacketFileReader reader;
-    QGLAbstractScene *m_scene;
-    QGLSceneNode *m_rootNode;
 
 public slots:
     void loadButtonClicked();
-    void startButtonClicked();
+    void displayButtonClicked();
     void loadMatFileButtonClicked();
 };
 
