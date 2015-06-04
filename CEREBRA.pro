@@ -28,6 +28,7 @@ DEPENDPATH += $$PWD/
 INCLUDEPATH += $$PWD/lib/extern/include
 DEPENDPATH += $$PWD/lib/extern/include
 
+LIBS += -lglew32 -lglu32 -lopengl32
 LIBS += -L"$$_PRO_FILE_PWD_/lib" -llibsimple
 LIBS += -L"$$_PRO_FILE_PWD_/lib/extern/lib/win32/microsoft" -llibeng
 LIBS += -L"$$_PRO_FILE_PWD_/lib/extern/lib/win32/microsoft" -llibmat

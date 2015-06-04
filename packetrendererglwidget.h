@@ -9,7 +9,7 @@
 #include <QVector>
 
 #include "Packet.h"
-#include <QOpenGLFunctions_3_2_Core>
+#include <QOpenGLFunctions_3_3_Core>
 
 /**
  * @brief The GLWidget class
@@ -21,7 +21,7 @@
 using namespace std;
 using namespace libsimple;
 
-class PacketRendererGLWidget : public QGLWidget, protected QOpenGLFunctions_3_2_Core
+class PacketRendererGLWidget : public QGLWidget, protected QOpenGLFunctions_3_3_Core
 {
     Q_OBJECT
 public:
@@ -97,10 +97,11 @@ public:
      */
     void setWorkingDirectory( QString workingDir);
 
-    void setThreshold( float threshold);
+    void setThresholdRange( float minThreshold, float maxThreshold);
+    void setMaxThreshold( float maxThreshold);
+    void setMinThreshold( float minThreshold);
     void setMinValue( float minValue);
     void setMaxValue( float maxValue);
-    void setRange( float range);
 
 //auxiliary functions
 private:
@@ -147,12 +148,11 @@ private:
     QVector<QVector2D> voxelTextureIndex; //passed to gpu
     QVector<QVector4D> colors; //passed to gpu
     QVector<QVector4D> edgeVertices; //passed to gpu
-    QVector<QVector2D> edgeTextureCoordinates; //passed to gpu
+    QVector<QVector2D> edgeTextureIndex; //passed to gpu
     GLuint textureOffset;
-    GLuint voxelTexture;
-    GLuint edgeTexture;
     QMatrix4x4 projection;
     QMatrix4x4 modelView;
+    QMatrix4x4 translationMatrix;
 
     GLuint voxelIBO;
     GLuint edgesIBO;
@@ -162,10 +162,10 @@ private:
     GLuint edgesBO;
     GLuint edgesTBO;
 
-    float threshold;
-    float range;
     float minValue;
     float maxValue;
+    float maxThreshold;
+    float minThreshold;
 
     /**
      * To handle rotation, zooming etc.
@@ -173,6 +173,10 @@ private:
     QPoint lastMousePosition;
     double alpha; //rotate around y axis
     double beta; //rotate around x axis
+
+    float moveX; //move on y axis
+    float moveY; //move on x axis
+
     double distance;
 
     QTimer *aTimer;

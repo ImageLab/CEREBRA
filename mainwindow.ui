@@ -40,7 +40,7 @@
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout">
+       <layout class="QVBoxLayout" name="rightPanelLayout">
         <item>
          <widget class="QTabWidget" name="tabWidget">
           <property name="sizePolicy">
@@ -77,7 +77,7 @@
            <attribute name="title">
             <string>Matlab Parameters</string>
            </attribute>
-           <widget class="QWidget" name="widget" native="true">
+           <widget class="QWidget" name="matlabTabWidget" native="true">
             <property name="geometry">
              <rect>
               <x>10</x>
@@ -90,7 +90,7 @@
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_4">
                <item>
-                <widget class="QLabel" name="label_2">
+                <widget class="QLabel" name="voxelPosLabel">
                  <property name="text">
                   <string>Voxel Positions:</string>
                  </property>
@@ -104,7 +104,7 @@
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_5">
                <item>
-                <widget class="QLabel" name="label_3">
+                <widget class="QLabel" name="voxelIntensitiesLabel">
                  <property name="text">
                   <string>Voxel Intensities:</string>
                  </property>
@@ -118,7 +118,7 @@
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_6">
                <item>
-                <widget class="QLabel" name="label_4">
+                <widget class="QLabel" name="edgePairsLabel">
                  <property name="text">
                   <string>Edge Pairs:</string>
                  </property>
@@ -132,7 +132,7 @@
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_7">
                <item>
-                <widget class="QLabel" name="label">
+                <widget class="QLabel" name="edgeIntensitiesLabel">
                  <property name="text">
                   <string>Edge Intensities:</string>
                  </property>
@@ -156,15 +156,15 @@
          </widget>
         </item>
         <item>
-         <widget class="QWidget" name="horizontalWidget" native="true">
-          <layout class="QHBoxLayout" name="horizontalLayout_8">
+         <widget class="QWidget" name="minMaxValuesWidget" native="true">
+          <layout class="QHBoxLayout" name="minMaxValuesLayout">
            <property name="sizeConstraint">
             <enum>QLayout::SetDefaultConstraint</enum>
            </property>
            <item>
             <layout class="QVBoxLayout" name="verticalLayout_5">
              <item>
-              <widget class="QLabel" name="label_6">
+              <widget class="QLabel" name="minValueLabel">
                <property name="maximumSize">
                 <size>
                  <width>80</width>
@@ -219,7 +219,7 @@
            <item>
             <layout class="QVBoxLayout" name="verticalLayout_4">
              <item>
-              <widget class="QLabel" name="label_5">
+              <widget class="QLabel" name="maxValueLabel">
                <property name="text">
                 <string>Max Value</string>
                </property>
@@ -253,9 +253,9 @@
          </widget>
         </item>
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout_6">
+         <layout class="QVBoxLayout" name="thresholdLayout">
           <item>
-           <widget class="QLabel" name="label_8">
+           <widget class="QLabel" name="thresholdLabel">
             <property name="text">
              <string>Threshold</string>
             </property>
@@ -285,30 +285,41 @@
          </layout>
         </item>
         <item>
-         <widget class="QLabel" name="label_9">
-          <property name="text">
-           <string>Range</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_14">
+         <layout class="QVBoxLayout" name="rangeLayout">
           <item>
-           <widget class="QSlider" name="rangeSlider">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+           <widget class="QCheckBox" name="setRangeCheckBox">
+            <property name="text">
+             <string>Set Range</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="rangeValuePercent">
+           <widget class="QLabel" name="rangeLabel">
             <property name="text">
-             <string>0%</string>
+             <string>Range</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
             </property>
            </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_10">
+            <item>
+             <widget class="QSlider" name="rangeSlider">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="rangeValuePercent">
+              <property name="text">
+               <string>0%</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </item>
@@ -326,7 +337,7 @@
          </spacer>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <layout class="QHBoxLayout" name="bottomButtonsLayout">
           <property name="sizeConstraint">
            <enum>QLayout::SetFixedSize</enum>
           </property>
@@ -499,6 +510,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>setRangeCheckBox</sender>
+   <signal>stateChanged(int)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>setRangeStateChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>764</x>
+     <y>492</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>511</x>
+     <y>383</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>loadButtonClicked()</slot>
@@ -508,5 +535,6 @@
   <slot>maxValueTextEdited(QString)</slot>
   <slot>thresholdSliderValueChanged(int)</slot>
   <slot>rangeSliderValueChanged(int)</slot>
+  <slot>setRangeStateChanged(int)</slot>
  </slots>
 </ui>

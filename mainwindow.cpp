@@ -16,6 +16,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->minValueTextField->setValidator( new QDoubleValidator(INT_MIN, INT_MAX, 3, this));
     ui->maxValueTextField->setValidator( new QDoubleValidator(INT_MIN, INT_MAX, 3, this));
 
+    ui->rangeSlider->setEnabled(false);
+
     ui->thresholdSlider->setRange(0, 100);
     ui->rangeSlider->setRange(0, 100);
 
@@ -150,7 +152,15 @@ void MainWindow::rangeSliderValueChanged(int value){
 void MainWindow::setThreshold( float threshold){
 
     this->threshold = threshold;
-    ui->packetRendererGLWidget->setThreshold( threshold);
+
+    if( ui->setRangeCheckBox->isChecked()){
+        float gap = ((float)(maxValue - minValue)/(float)2)*(this->range/(float)100);
+        float minThreshold = (threshold - gap < 0)?0:(threshold-gap);
+        float maxThreshold = (threshold + gap > maxValue)?maxValue:(threshold+gap);
+
+        ui->packetRendererGLWidget->setThresholdRange( minThreshold, maxThreshold);
+    }else
+        ui->packetRendererGLWidget->setThresholdRange( ui->thresholdSlider->minimum(), threshold);
 }
 
 void MainWindow::setMinValue( float minValue){
@@ -168,5 +178,20 @@ void MainWindow::setMaxValue( float maxValue){
 void MainWindow::setRange( float range){
 
     this->range = range;
-    ui->packetRendererGLWidget->setRange( range);
+    float gap = ((float)(maxValue - minValue)/(float)2)*(this->range/(float)100);
+
+    float minThreshold = (threshold - gap < 0)?0:(threshold-gap);
+    float maxThreshold = (threshold + gap > maxValue)?maxValue:(threshold+gap);
+
+    ui->packetRendererGLWidget->setThresholdRange( minThreshold, maxThreshold);
+}
+
+void MainWindow::setRangeStateChanged( int state){
+
+    if( state == 0)
+        ui->rangeSlider->setEnabled(false);
+    else
+        ui->rangeSlider->setEnabled(true);
+
+    setThreshold(threshold);
 }

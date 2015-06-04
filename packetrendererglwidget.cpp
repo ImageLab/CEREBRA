@@ -12,10 +12,13 @@ PacketRendererGLWidget::PacketRendererGLWidget( QWidget *parent) : QGLWidget( pa
 {
     projection.setToIdentity();
     modelView.setToIdentity();
+    translationMatrix.setToIdentity();
 
     alpha = 0;
     beta = 0;
     distance = 60;
+    moveX = 0;
+    moveY = 0;
 
     aTimer = new QTimer;
     connect(aTimer,SIGNAL(timeout()),SLOT(animate()));
@@ -23,17 +26,14 @@ PacketRendererGLWidget::PacketRendererGLWidget( QWidget *parent) : QGLWidget( pa
 
     minValue = 0.0;
     maxValue = 1.0;
-    threshold = 0.5;
-    range = 100;
+    minThreshold = INT_MAX;
+    maxThreshold = INT_MAX;
 }
 
 PacketRendererGLWidget::~PacketRendererGLWidget(){
 
     delete packetToRender;
     delete aTimer;
-
-    //if working directory not specified, delete all the files
-    //created while the program is running.
 }
 
 QSize PacketRendererGLWidget::sizeHint() const{
@@ -47,34 +47,127 @@ void PacketRendererGLWidget::initializeGL(){
 
     projection.setToIdentity();
     modelView.setToIdentity();
+    translationMatrix.setToIdentity();
     textureOffset = 0;
 
     //gl attributes
+    qglClearColor( QColor( Qt::black));
+
     glEnable( GL_DEPTH_TEST);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable( GL_BLEND );
-    qglClearColor( QColor( Qt::gray));
+    glEnable( GL_BLEND);
+    glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     initializeShader();
+}
+
+void PacketRendererGLWidget::initializeShader(){
+
+    if( shaderProgram.isLinked()){
+        shaderProgram.disableAttributeArray( "vPosition");
+        shaderProgram.disableAttributeArray( "vIndex");
+        shaderProgram.release();
+        shaderProgram.removeAllShaders();
+    }
+
+    QString vertexShaderSource = "#version 430\n"
+
+                                "in vec4 vPosition;\n"
+                                "in vec2 vIndex;\n"
+
+                                "uniform float minValue;\n"
+                                "uniform float maxValue;\n"
+                                "uniform int textureOffset;\n"
+                                "uniform mat4 modelView;\n"
+                                "uniform mat4 projection;\n"
+                                "uniform mat4 translationMatrix;\n"
+                                "uniform samplerBuffer u_tbo_tex;\n"
+
+                                "out vec4 color;\n"
+
+                                "void main(void){\n"
+
+                                    "float r = ((texelFetch(u_tbo_tex, int(vIndex.x) + textureOffset).r)-minValue)/(maxValue - minValue);\n"
+                                    "gl_Position = projection * translationMatrix * modelView * vPosition;\n"
+                                    "color = vec4(r, 1-r, 0, 1.0);\n"
+                                "}";
+
+    QString fragmentShaderSource = "#version 430\n"
+
+                                   "uniform float minThreshold;\n"
+                                   "uniform float maxThreshold;\n"
+                                   "uniform bool shouldDrawTransparent;\n"
+                                   "in vec4 color;\n"
+
+                                   "out vec4 fColor;\n"
+                                   "void main(void){\n"
+                                        "if(color.x <= maxThreshold && color.x >= minThreshold)\n"
+                                            "if( shouldDrawTransparent)\n"
+                                                "fColor = vec4(0.83, 0.83, 0.83, 0.05);\n"
+                                            "else\n"
+                                                "discard;\n"
+                                        "else\n"
+                                            "if( !shouldDrawTransparent)\n"
+                                                "fColor = color;\n"
+                                            "else\n"
+                                                "discard;\n"
+                                   "}";
+
+    shaderProgram.addShaderFromSourceCode(QGLShader::Vertex, vertexShaderSource);
+    shaderProgram.addShaderFromSourceCode(QGLShader::Fragment, fragmentShaderSource);
+
+    shaderProgram.link();
+    shaderProgram.bind();
+
+    shaderProgram.enableAttributeArray( "vPosition");
+    shaderProgram.enableAttributeArray( "vIndex");
+}
+
+void PacketRendererGLWidget::setPacket(Packet *packet, QString workingDirectory){
+
+    if( aTimer->isActive())
+        aTimer->stop();
+
+    if( packet->vXYZ.size() < 1)
+        return;
+
+    packetToRender = packet;
+    this->workingDirectory = workingDirectory;
+
+    //if no intensity available, then create fake one with all intensities = 1;
+    if( packetToRender->intensities.size() < 1){
+
+        packetToRender->intensities.clear();
+        packetToRender->intensities.resize( (size_t)packetToRender->vXYZ.size());
+
+        for( int voxel = 0; voxel < (int)packetToRender->vXYZ.size(); voxel++)
+            packetToRender->intensities[voxel].push_back((float)1.0);
+    }
+
+    createVoxelTexture( packetToRender->intensities.size(),
+                        packetToRender->intensities[0].size(),
+                        INTERPOLATION_LEVEL);
+
+    textureOffset = 0;
+    shaderProgram.setUniformValue( "textureOffset", textureOffset);
+
+    updateAttributeArrays();
+    updateMatrices();
+
+    if( shouldAnimate)
+        aTimer->start(UPDATE_FREQ_IN_MS); //updating per this amount of milliseconds
 }
 
 void PacketRendererGLWidget::paintGL(){
 
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-//    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, voxelIBO);
-//    int size;  glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+    shaderProgram.setUniformValue( "shouldDrawTransparent", false);
     glDrawElements( GL_TRIANGLES, voxelIndices.size(), GL_UNSIGNED_INT, nullptr);
 
-//    shaderProgram.setAttributeArray( "vPosition", edgeVertices.constData());
-//    shaderProgram.setAttributeArray( "vColor", colors.constData());
-//    shaderProgram.setAttributeArray( "vTextureCoordinate", edgeTextureCoordinates.constData());
-
-//    glDrawArrays( GL_LINES, 0, edgeVertices.size());
-
-//    shaderProgram.setAttributeArray( "vPosition", voxelVertices.constData());
-//    shaderProgram.setAttributeArray( "vColor", colors.constData());
-//    shaderProgram.setAttributeArray( "vTextureCoordinate", voxelTextureCoordinates.constData());
+    glDepthMask(GL_FALSE);
+    shaderProgram.setUniformValue( "shouldDrawTransparent", true);
+    glDrawElements( GL_TRIANGLES, voxelIndices.size(), GL_UNSIGNED_INT, nullptr);
+    glDepthMask(GL_TRUE);
 }
 
 void PacketRendererGLWidget::resizeGL( int width, int height){
@@ -92,7 +185,7 @@ void PacketRendererGLWidget::resizeGL( int width, int height){
 
 void PacketRendererGLWidget::mousePressEvent( QMouseEvent *event){
 
-    if( event->button() == Qt::LeftButton)
+    if( event->button() == Qt::LeftButton || event->button() == Qt::MiddleButton)
         lastMousePosition = event->pos();
 
     event->accept();
@@ -121,6 +214,14 @@ void PacketRendererGLWidget::mouseMoveEvent( QMouseEvent *event){
         lastMousePosition = event->pos();
 
         updateMatrices();
+    }else if( event->buttons() & Qt::MiddleButton){
+
+        moveX += 0.3*(event->x() - lastMousePosition.x());
+        moveY += 0.3*(event->y() - lastMousePosition.y());
+
+        lastMousePosition = event->pos();
+
+        updateMatrices();
     }
 
     event->accept();
@@ -144,8 +245,12 @@ void PacketRendererGLWidget::wheelEvent( QWheelEvent *event){
 void PacketRendererGLWidget::updateMatrices(){
 
     modelView.setToIdentity();
+    translationMatrix.setToIdentity();
+
+    translationMatrix.translate(moveX, -1*moveY);
+
     QMatrix4x4 cameraTransformation;
-    cameraTransformation.rotate(alpha, 0, 1, 0);
+    cameraTransformation.rotate(alpha, 0, 0, 1);
     cameraTransformation.rotate(beta, 1, 0, 0);
     QVector3D cameraPosition = cameraTransformation * QVector3D(0, 0, distance);
     QVector3D cameraUpDirection = cameraTransformation * QVector3D(0, 1, 0);
@@ -153,6 +258,7 @@ void PacketRendererGLWidget::updateMatrices(){
 
     shaderProgram.setUniformValue("projection", projection);
     shaderProgram.setUniformValue("modelView", modelView);
+    shaderProgram.setUniformValue("translationMatrix", translationMatrix);
     updateGL();
 }
 
@@ -208,135 +314,25 @@ void PacketRendererGLWidget::updateAttributeArrays(){
     glBufferData( GL_ELEMENT_ARRAY_BUFFER, voxelIndices.size()*sizeof(unsigned int), &(voxelIndices.front()), GL_STATIC_DRAW);
 
 //    for(int pair=0; pair < packetToRender->edges.size(); pair++){
-//        if(packetToRender->edgeIntensities[pair][0] > 0.5){
 
-//            QVector3D origin(packetToRender->vXYZ[packetToRender->edges[pair].x].x, packetToRender->vXYZ[packetToRender->edges[pair].x].y, packetToRender->vXYZ[packetToRender->edges[pair].x].z);
-//            QVector3D destination(packetToRender->vXYZ[packetToRender->edges[pair].y].x, packetToRender->vXYZ[packetToRender->edges[pair].y].y, packetToRender->vXYZ[packetToRender->edges[pair].y].z);
+//        QVector3D origin(packetToRender->vXYZ[packetToRender->edges[pair].x].x, packetToRender->vXYZ[packetToRender->edges[pair].x].y, packetToRender->vXYZ[packetToRender->edges[pair].x].z);
+//        QVector3D destination(packetToRender->vXYZ[packetToRender->edges[pair].y].x, packetToRender->vXYZ[packetToRender->edges[pair].y].y, packetToRender->vXYZ[packetToRender->edges[pair].y].z);
 
-//            edgeVertices << QVector4D( origin,1.0) <<  QVector4D( destination,1.0);
-//            edgeTextureCoordinates <<  QVector2D(0, (float)(pair)/(float)(packetToRender->edges.size())) << QVector2D(0, (float)(pair)/(float)(packetToRender->edges.size()));
-//        }
+//        edgeVertices << QVector4D( origin, 1.0) //0
+//                     << QVector4D( destination, 1.0); //1
+
+//        edgeTextureIndex <<  QVector2D(0, (float)(pair)/(float)(packetToRender->edges.size()))
+//                               << QVector2D(0, (float)(pair)/(float)(packetToRender->edges.size()));
 //    }
 
     initializeShader();
 
+    setThresholdRange(minThreshold, maxThreshold);
+    setMinValue(minValue);
+    setMaxValue(maxValue);
+
     shaderProgram.setAttributeArray( "vPosition", voxelVertices.constData());
-    shaderProgram.setAttributeArray( "voxelIndex", voxelTextureIndex.constData());
-}
-
-void PacketRendererGLWidget::initializeShader(){
-
-    if( shaderProgram.isLinked()){
-        shaderProgram.disableAttributeArray( "vPosition");
-        shaderProgram.disableAttributeArray( "voxelIndex");
-        //shaderProgram.disableAttributeArray( "edgePairIndex");
-        shaderProgram.release();
-        shaderProgram.removeAllShaders();
-    }
-
-    QString vertexShaderSource = "#version 430\n"
-
-                                "in vec4 vPosition;\n"
-                                "in vec2 voxelIndex;\n"
-                                "//in int edgePairIndex;\n"
-
-                                "uniform float minThreshold;\n"
-                                "uniform float maxThreshold;\n"
-                                "uniform float minValue;\n"
-                                "uniform float maxValue;\n"
-                                "uniform int textureOffset;\n"
-                                "uniform mat4 modelView;\n"
-                                "uniform mat4 projection;\n"
-                                "//uniform bool shouldUseVoxel;\n"
-                                "uniform samplerBuffer u_tbo_tex;\n"
-
-                                "out vec4 color;\n"
-
-                                "void main(void){\n"
-
-                                    "float r = ((texelFetch(u_tbo_tex, int(voxelIndex.x) + textureOffset).r)-minValue)/(maxValue - minValue);\n"
-                                    "gl_Position = projection * modelView * vPosition;\n"
-                                    "if( r > maxThreshold || r < minThreshold)\n"
-                                    "color = vec4(r, 1-r, 0.0, 1.0);\n"
-                                    "else\n"
-                                    "color = vec4(r, 1-r, 0.0, 0.0);\n"
-                                "}";
-
-    QString fragmentShaderSource = "#version 430\n"
-
-                                   "uniform bool isTextured;\n"
-
-                                   "in vec4 color;\n"
-
-                                   "out vec4 fColor;\n"
-                                   "void main(void){\n"
-                                       "fColor = color;\n"
-                                   "}";
-
-    shaderProgram.addShaderFromSourceCode(QGLShader::Vertex, vertexShaderSource);
-    shaderProgram.addShaderFromSourceCode(QGLShader::Fragment, fragmentShaderSource);
-
-    float gap = ((float)(maxValue - minValue)/(float)2)*(this->range/(float)100);
-
-    float minThreshold = (threshold - gap < 0)?0:(threshold-gap);
-    float maxThreshold = (threshold + gap > maxValue)?maxValue:(threshold+gap);
-
-    shaderProgram.link();
-    shaderProgram.bind();
-
-    shaderProgram.setUniformValue( "minThreshold", minThreshold);
-    shaderProgram.setUniformValue( "maxThreshold", maxThreshold);
-    shaderProgram.setUniformValue( "maxValue", maxValue);
-    shaderProgram.setUniformValue( "minValue", minValue);
-
-    shaderProgram.enableAttributeArray( "vPosition");
-    shaderProgram.enableAttributeArray( "voxelIndex");
-    //shaderProgram.enableAttributeArray( "edgePairIndex");
-}
-
-void PacketRendererGLWidget::setPacket(Packet *packet, QString workingDirectory){
-
-    if( aTimer->isActive())
-        aTimer->stop();
-
-    if( packet->vXYZ.size() < 1)
-        return;
-
-    packetToRender = packet;
-    this->workingDirectory = workingDirectory;
-
-    //if no intensity available, then create fake one with all intensities = 1;
-    if( packetToRender->intensities.size() < 1){
-
-        packetToRender->intensities.clear();
-        packetToRender->intensities.resize( (size_t)packetToRender->vXYZ.size());
-
-        for( int voxel = 0; voxel < (int)packetToRender->vXYZ.size(); voxel++)
-            packetToRender->intensities[voxel].push_back((float)1.0);
-    }
-
-    createVoxelTexture( packetToRender->intensities.size(),
-                        packetToRender->intensities[0].size(),
-                        INTERPOLATION_LEVEL);
-
-    textureOffset = 0;
-    shaderProgram.setUniformValue( "textureOffset", textureOffset);
-
-    float gap = ((float)(maxValue - minValue)/(float)2)*(this->range/(float)100);
-
-    float minThreshold = (threshold - gap < 0)?0:(threshold-gap);
-    float maxThreshold = (threshold + gap > maxValue)?maxValue:(threshold+gap);
-
-    shaderProgram.setUniformValue( "minThreshold", minThreshold);
-    shaderProgram.setUniformValue( "maxThreshold", maxThreshold);
-    shaderProgram.setUniformValue( "maxValue", maxValue);
-    shaderProgram.setUniformValue( "minValue", minValue);
-
-    updateAttributeArrays();
-    updateMatrices();
-
-    if( shouldAnimate)
-        aTimer->start(UPDATE_FREQ_IN_MS); //updating per this amount of milliseconds
+    shaderProgram.setAttributeArray( "vIndex", voxelTextureIndex.constData());
 }
 
 void PacketRendererGLWidget::createVoxelTexture(const int row, const int column, const int interpolationLevel){
@@ -350,12 +346,9 @@ void PacketRendererGLWidget::createVoxelTexture(const int row, const int column,
             float curIntensity = packetToRender->intensities[curRow][curColumn];
             float interpolation = (float)(nextIntensity - curIntensity)/(float)interpolationLevel;
 
-            for( int curInterp = 0; curInterp < interpolationLevel; curInterp++){
+            for( int curInterp = 0; curInterp < interpolationLevel; curInterp++)
                 voxelBOData[curRow*column*interpolationLevel + curColumn*interpolationLevel + curInterp] = curIntensity + curInterp * interpolation;
-                //cout << voxelBOData[curRow*column*interpolationLevel + curColumn*interpolationLevel + curInterp] << " ";
-            }
         }
-        //cout << endl;
 
         //last column
         int curColumn = column-1;
@@ -370,6 +363,7 @@ void PacketRendererGLWidget::createVoxelTexture(const int row, const int column,
     glGenBuffers( 1, &voxelBO);
     glBindBuffer( GL_TEXTURE_BUFFER, voxelBO);
     glBufferData( GL_TEXTURE_BUFFER, sizeof(float)*row*column*interpolationLevel, voxelBOData, GL_STATIC_DRAW);
+
 
     glGenTextures( 1, &voxelTBO);
     glBindTexture( GL_TEXTURE_BUFFER, voxelTBO);
@@ -425,17 +419,24 @@ QString PacketRendererGLWidget::getWorkingDirectory(){
     return workingDirectory;
 }
 
-void PacketRendererGLWidget::setThreshold( float threshold){
-
-    float gap = ((float)(maxValue - minValue)/(float)2)*(this->range/(float)100);
-    this->threshold = threshold;
-    float minThreshold = (threshold - gap < 0)?0:(threshold-gap);
-    float maxThreshold = (threshold + gap > maxValue)?maxValue:(threshold+gap);
+void PacketRendererGLWidget::setThresholdRange( float minThreshold, float maxThreshold){
 
     if( shaderProgram.isLinked()){
         shaderProgram.setUniformValue( "minThreshold", minThreshold);
         shaderProgram.setUniformValue( "maxThreshold", maxThreshold);
     }
+}
+
+void PacketRendererGLWidget::setMaxThreshold( float maxThreshold){
+
+    if( shaderProgram.isLinked())
+        shaderProgram.setUniformValue( "maxThreshold", maxThreshold);
+}
+
+void PacketRendererGLWidget::setMinThreshold( float minThreshold){
+
+    if( shaderProgram.isLinked())
+        shaderProgram.setUniformValue( "minThreshold", minThreshold);
 }
 
 void PacketRendererGLWidget::setMinValue( float minValue){
@@ -452,18 +453,4 @@ void PacketRendererGLWidget::setMaxValue( float maxValue){
 
     if( shaderProgram.isLinked())
         shaderProgram.setUniformValue( "maxValue", maxValue);
-}
-
-void PacketRendererGLWidget::setRange( float range){
-
-    this->range = range;
-    float gap = ((float)(maxValue - minValue)/(float)2)*(this->range/(float)100);
-
-    float minThreshold = (threshold - gap < 0)?0:(threshold-gap);
-    float maxThreshold = (threshold + gap > maxValue)?maxValue:(threshold+gap);
-
-    if( shaderProgram.isLinked()){
-        shaderProgram.setUniformValue( "minThreshold", minThreshold);
-        shaderProgram.setUniformValue( "maxThreshold", maxThreshold);
-    }
 }

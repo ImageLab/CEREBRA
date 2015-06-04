@@ -38,6 +38,7 @@ public slots:
     void maxValueTextEdited( QString text);
     void thresholdSliderValueChanged( int value);
     void rangeSliderValueChanged(int value);
+    void setRangeStateChanged( int state);
 
 private:
     void updateThresholdSliderValue( int value);
