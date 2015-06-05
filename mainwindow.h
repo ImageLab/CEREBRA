@@ -24,28 +24,30 @@ private:
     Ui::MainWindow *ui;
     PacketFileReader reader;
 
-    //settings for display
-    float minValue;
-    float maxValue;
-    float threshold;
-    float range;
-
 public slots:
     void loadButtonClicked();
     void displayButtonClicked();
     void loadMatFileButtonClicked();
+
     void minValueTextEdited( QString text);
     void maxValueTextEdited( QString text);
+    void minEdgeValueTextEdited( QString text);
+    void maxEdgeValueTextEdited( QString text);
+
     void thresholdSliderValueChanged( int value);
     void rangeSliderValueChanged(int value);
     void setRangeStateChanged( int state);
+    void edgeThresholdSliderValueChanged( int value);
+    void edgeRangeSliderValueChanged(int value);
+    void edgeSetRangeStateChanged( int state);
+
+    void displayArcsStateChanged( int state);
 
 private:
-    void updateThresholdSliderValue( int value);
-    void setThreshold( float threshold);
-    void setMinValue( float minValue);
-    void setMaxValue( float maxValue);
-    void setRange( float range);
+    void setThreshold( bool isVoxel);
+    void setMinValue( bool isVoxel);
+    void setMaxValue( bool isVoxel);
+    void setRange( bool isVoxel);
 };
 
 #endif // MAINWINDOW_H

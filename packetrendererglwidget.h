@@ -98,10 +98,12 @@ public:
     void setWorkingDirectory( QString workingDir);
 
     void setThresholdRange( float minThreshold, float maxThreshold);
-    void setMaxThreshold( float maxThreshold);
-    void setMinThreshold( float minThreshold);
-    void setMinValue( float minValue);
-    void setMaxValue( float maxValue);
+    void setPairsThresholdRange( float minThreshold, float maxThreshold);
+    void setVoxelMinValue( float voxelMinValue);
+    void setVoxelMaxValue( float voxelMaxValue);
+    void setPairsMinValue( float pairsMinValue);
+    void setPairsMaxValue( float pairsMaxValue);
+    void shouldDisplayArcs( bool shouldDisplay);
 
 //auxiliary functions
 private:
@@ -122,15 +124,8 @@ private:
 
     void initializeShader();
 
-    /**
-     * @brief createTexture creates a texture in the working directory,
-     * if specified. Otherwise it creates the texture where the executable
-     * is located.
-     */
-    void createVoxelTexture( const int row, const int column, const int interpolationLevel);
-    void createEdgePairTexture();
+    void createVoxelTexture();
     void createTexture( QString textureName, vector< vector<float> > &intensityValues);
-
 
     QString getWorkingDirectory();
 
@@ -162,10 +157,15 @@ private:
     GLuint edgesBO;
     GLuint edgesTBO;
 
-    float minValue;
-    float maxValue;
-    float maxThreshold;
-    float minThreshold;
+    float voxelMinValue;
+    float voxelMaxValue;
+    float pairsMinValue;
+    float pairsMaxValue;
+    float voxelMaxThreshold;
+    float voxelMinThreshold;
+    float pairsMaxThreshold;
+    float pairsMinThreshold;
+    bool displayArcs;
 
     /**
      * To handle rotation, zooming etc.

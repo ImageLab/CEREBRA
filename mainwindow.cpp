@@ -15,16 +15,28 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->minValueTextField->setValidator( new QDoubleValidator(INT_MIN, INT_MAX, 3, this));
     ui->maxValueTextField->setValidator( new QDoubleValidator(INT_MIN, INT_MAX, 3, this));
+    ui->edgeMinValueTextField->setValidator( new QDoubleValidator(INT_MIN, INT_MAX, 3, this));
+    ui->edgeMaxValueTextField->setValidator( new QDoubleValidator(INT_MIN, INT_MAX, 3, this));
 
     ui->rangeSlider->setEnabled(false);
+    ui->edgeRangeSlider->setEnabled(false);
 
     ui->thresholdSlider->setRange(0, 100);
+    ui->edgeThresholdSlider->setRange(0, 100);
     ui->rangeSlider->setRange(0, 100);
+    ui->edgeRangeSlider->setRange(0, 100);
 
-    setMinValue(ui->minValueTextField->text().toFloat());
-    setMaxValue(ui->maxValueTextField->text().toFloat());
-    setThreshold(ui->thresholdSlider->minimum());
-    setRange(ui->rangeSlider->minimum());
+    setMinValue(true);
+    setMaxValue(true);
+    setThreshold(true);
+    setRange(true);
+
+    setMinValue(false);
+    setMaxValue(false);
+    setThreshold(false);
+    setRange(false);
+
+    displayArcsStateChanged(0);
 }
 
 MainWindow::~MainWindow()
@@ -97,93 +109,151 @@ void MainWindow::displayButtonClicked()
 
 void MainWindow::minValueTextEdited(QString text){
 
-    int charAscii = text.toStdString().c_str()[text.length()-1];
-
-    //if no text left
-    if( charAscii == 4)
-        setMinValue(0.0);
-    else{
-        float newMinValue = ui->minValueTextField->text().toFloat();
-        if( newMinValue > maxValue)
-            ui->minValueTextField->setText(QString::number(maxValue));
-
-        setMinValue(ui->minValueTextField->text().toFloat());
-    }
-
-    updateThresholdSliderValue( ui->thresholdSlider->value());
+    setMinValue( true);
 }
 
 void MainWindow::maxValueTextEdited(QString text){
 
-    int charAscii = text.toStdString().c_str()[text.length()-1];
+    setMaxValue( true);
+}
 
-    //if no text left
-    if( charAscii == 4)
-        setMaxValue(0.0);
-    else{
+void MainWindow::minEdgeValueTextEdited(QString text){
 
-        float newMaxValue = ui->maxValueTextField->text().toFloat();
-        if( newMaxValue < minValue)
-            ui->maxValueTextField->setText(QString::number(minValue));
+    setMinValue( false);
+}
 
-        setMaxValue(ui->maxValueTextField->text().toFloat());
-    }
+void MainWindow::maxEdgeValueTextEdited(QString text){
 
-    updateThresholdSliderValue( ui->thresholdSlider->value());
+    setMaxValue( false);
 }
 
 void MainWindow::thresholdSliderValueChanged( int value){
 
-    updateThresholdSliderValue( value);
-}
-
-void MainWindow::updateThresholdSliderValue( int value){
-
-    setThreshold(minValue + ((float)(maxValue-minValue)*(float)value/ui->thresholdSlider->maximum()));
-    ui->thresholdValue->setText(QString::number(threshold));
+    setThreshold( true);
 }
 
 void MainWindow::rangeSliderValueChanged(int value){
 
-    setRange(value);
-    ui->rangeValuePercent->setText(QString::number(range) + "%");
+    setRange( true);
+    ui->rangeValuePercent->setText(QString::number( value) + "%");
 }
 
-void MainWindow::setThreshold( float threshold){
+void MainWindow::edgeThresholdSliderValueChanged( int value){
 
-    this->threshold = threshold;
+    setThreshold( false);
+}
 
-    if( ui->setRangeCheckBox->isChecked()){
-        float gap = ((float)(maxValue - minValue)/(float)2)*(this->range/(float)100);
-        float minThreshold = (threshold - gap < 0)?0:(threshold-gap);
-        float maxThreshold = (threshold + gap > maxValue)?maxValue:(threshold+gap);
+void MainWindow::edgeRangeSliderValueChanged(int value){
 
+    setRange( false);
+    ui->edgeRangeValuePercent->setText(QString::number( value) + "%");
+}
+
+void MainWindow::setMinValue( bool isVoxel){
+
+    QLineEdit *maxTextField = (isVoxel)?ui->maxValueTextField:ui->edgeMaxValueTextField;
+    QLineEdit *minTextField = (isVoxel)?ui->minValueTextField:ui->edgeMinValueTextField;
+
+    float minValue = INT_MIN;
+
+    //if no text left
+    if( minTextField->text().size() == 0)
+        minValue = 0.0;
+    else{
+        float newMinValue = minTextField->text().toFloat();
+        if( newMinValue > maxTextField->text().toFloat())
+            minTextField->setText(QString::number(maxTextField->text().toFloat()));
+
+        minValue = minTextField->text().toFloat();
+    }
+
+    if( isVoxel){
+        setThreshold( true);
+        ui->packetRendererGLWidget->setVoxelMinValue( minValue);
+    }else{
+        setThreshold( false);
+        ui->packetRendererGLWidget->setPairsMinValue( minValue);
+    }
+}
+
+void MainWindow::setMaxValue( bool isVoxel){
+
+    QLineEdit *maxTextField = (isVoxel)?ui->maxValueTextField:ui->edgeMaxValueTextField;
+    QLineEdit *minTextField = (isVoxel)?ui->minValueTextField:ui->edgeMinValueTextField;
+
+    float maxValue = (float)INT_MAX;
+
+    //if no text left
+    if( maxTextField->text().size() == 0)
+        maxValue = 1.0;
+    else{
+        float newMaxValue = maxTextField->text().toFloat();
+        if( newMaxValue < minTextField->text().toFloat())
+            maxTextField->setText(QString::number(minTextField->text().toFloat()));
+
+        maxValue = maxTextField->text().toFloat();
+    }
+
+    if( isVoxel){
+        setThreshold( true);
+        ui->packetRendererGLWidget->setVoxelMaxValue( maxValue);
+    }else{
+        setThreshold( false);
+        ui->packetRendererGLWidget->setPairsMaxValue( maxValue);
+    }
+}
+
+void MainWindow::setThreshold( bool isVoxel){
+
+    QLineEdit *maxTextField = (isVoxel)?ui->maxValueTextField:ui->edgeMaxValueTextField;
+    QLineEdit *minTextField = (isVoxel)?ui->minValueTextField:ui->edgeMinValueTextField;
+    QLabel *thresholdValue = (isVoxel)?ui->thresholdValue:ui->edgeThresholdValue;
+    QSlider *thresholdSlider = (isVoxel)?ui->thresholdSlider:ui->edgeThresholdSlider;
+    QSlider *rangeSlider = (isVoxel)?ui->rangeSlider:ui->edgeRangeSlider;
+    QCheckBox *setRangeCheckBox = (isVoxel)?ui->setRangeCheckBox:ui->edgeSetRangeCheckBox;
+    QLabel *minThresholdLabel = (isVoxel)?ui->minThresholdLabel:ui->edgeMinThresholdLabel;
+    QLabel *maxThresholdLabel = (isVoxel)?ui->maxThresholdLabel:ui->edgeMaxThresholdLabel;
+
+    float maxValue = maxTextField->text().toFloat();
+    float minValue = minTextField->text().toFloat();
+    float threshold = minValue + ((float)(maxValue-minValue)*(float)thresholdSlider->value()/thresholdSlider->maximum());
+    float gap = ((float)(maxValue - minValue)/(float)2)*((float)rangeSlider->value()/(float)100);
+    float minThreshold = (setRangeCheckBox->isChecked() && threshold - gap >= thresholdSlider->minimum())?(threshold-gap):thresholdSlider->minimum();
+    float maxThreshold = (setRangeCheckBox->isChecked())?(threshold + gap > maxValue)?maxValue:(threshold+gap):threshold;
+
+    if( isVoxel)
         ui->packetRendererGLWidget->setThresholdRange( minThreshold, maxThreshold);
-    }else
-        ui->packetRendererGLWidget->setThresholdRange( ui->thresholdSlider->minimum(), threshold);
+    else
+        ui->packetRendererGLWidget->setPairsThresholdRange( minThreshold, maxThreshold);
+
+    minThresholdLabel->setText("Min. Value: " + QString::number(minThreshold));
+    maxThresholdLabel->setText("Max. Value: " + QString::number(maxThreshold));
+    thresholdValue->setText(QString::number(threshold));
 }
 
-void MainWindow::setMinValue( float minValue){
+void MainWindow::setRange( bool isVoxel){
 
-    this->minValue = minValue;
-    ui->packetRendererGLWidget->setMinValue( minValue);
-}
+    QLineEdit *maxTextField = (isVoxel)?ui->maxValueTextField:ui->edgeMaxValueTextField;
+    QLineEdit *minTextField = (isVoxel)?ui->minValueTextField:ui->edgeMinValueTextField;
+    QSlider *rangeSlider = (isVoxel)?ui->rangeSlider:ui->edgeRangeSlider;
+    QSlider *thresholdSlider = (isVoxel)?ui->thresholdSlider:ui->edgeThresholdSlider;
+    QLabel *minThresholdLabel = (isVoxel)?ui->minThresholdLabel:ui->edgeMinThresholdLabel;
+    QLabel *maxThresholdLabel = (isVoxel)?ui->maxThresholdLabel:ui->edgeMaxThresholdLabel;
 
-void MainWindow::setMaxValue( float maxValue){
-
-    this->maxValue = maxValue;
-    ui->packetRendererGLWidget->setMaxValue( maxValue);
-}
-
-void MainWindow::setRange( float range){
-
-    this->range = range;
-    float gap = ((float)(maxValue - minValue)/(float)2)*(this->range/(float)100);
-
+    float maxValue = maxTextField->text().toFloat();
+    float minValue = minTextField->text().toFloat();
+    float threshold = minValue + ((float)(maxValue-minValue)*(float)thresholdSlider->value()/thresholdSlider->maximum());
+    float gap = ((float)(maxValue - minValue)/(float)2)*((float)rangeSlider->value()/(float)100);
     float minThreshold = (threshold - gap < 0)?0:(threshold-gap);
     float maxThreshold = (threshold + gap > maxValue)?maxValue:(threshold+gap);
 
-    ui->packetRendererGLWidget->setThresholdRange( minThreshold, maxThreshold);
+    if( isVoxel)
+        ui->packetRendererGLWidget->setThresholdRange( minThreshold, maxThreshold);
+    else
+        ui->packetRendererGLWidget->setPairsThresholdRange( minThreshold, threshold);
+
+    minThresholdLabel->setText("Min. Value: " + QString::number(minThreshold));
+    maxThresholdLabel->setText("Max. Value: " + QString::number(maxThreshold));
 }
 
 void MainWindow::setRangeStateChanged( int state){
@@ -193,5 +263,37 @@ void MainWindow::setRangeStateChanged( int state){
     else
         ui->rangeSlider->setEnabled(true);
 
-    setThreshold(threshold);
+    setThreshold( true);
+}
+
+void MainWindow::edgeSetRangeStateChanged( int state){
+
+    if( state == 0)
+        ui->edgeRangeSlider->setEnabled(false);
+    else
+        ui->edgeRangeSlider->setEnabled(true);
+
+    setThreshold( false);
+}
+
+void MainWindow::displayArcsStateChanged( int state){
+
+    if( state == 0){
+
+        ui->edgeMinMaxValuesWidget->setEnabled(false);
+        ui->edgeThresholdSlider->setEnabled(false);
+        ui->edgeRangeSlider->setEnabled(false);
+        ui->edgeSetRangeCheckBox->setEnabled(false);
+        ui->packetRendererGLWidget->shouldDisplayArcs( false);
+    }else{
+
+        ui->edgeMinMaxValuesWidget->setEnabled(true);
+        ui->edgeThresholdSlider->setEnabled(true);
+        ui->edgeSetRangeCheckBox->setEnabled(true);
+        if( ui->edgeSetRangeCheckBox->isChecked())
+            ui->edgeRangeSlider->setEnabled(true);
+        else
+            ui->edgeRangeSlider->setEnabled(false);
+        ui->packetRendererGLWidget->shouldDisplayArcs( true);
+    }
 }

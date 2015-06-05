@@ -24,10 +24,11 @@ PacketRendererGLWidget::PacketRendererGLWidget( QWidget *parent) : QGLWidget( pa
     connect(aTimer,SIGNAL(timeout()),SLOT(animate()));
     shouldAnimate = true;
 
-    minValue = 0.0;
-    maxValue = 1.0;
-    minThreshold = INT_MAX;
-    maxThreshold = INT_MAX;
+    voxelMinValue = 0.0;
+    voxelMaxValue = 1.0;
+    pairsMinValue = 0.0;
+    pairsMaxValue = 1.0;
+    displayArcs = false;
 }
 
 PacketRendererGLWidget::~PacketRendererGLWidget(){
@@ -96,12 +97,13 @@ void PacketRendererGLWidget::initializeShader(){
                                    "uniform float minThreshold;\n"
                                    "uniform float maxThreshold;\n"
                                    "uniform bool shouldDrawTransparent;\n"
+                                   "uniform bool drawsEdges;\n"
                                    "in vec4 color;\n"
 
                                    "out vec4 fColor;\n"
                                    "void main(void){\n"
                                         "if(color.x <= maxThreshold && color.x >= minThreshold)\n"
-                                            "if( shouldDrawTransparent)\n"
+                                            "if( !drawsEdges && shouldDrawTransparent)\n"
                                                 "fColor = vec4(0.83, 0.83, 0.83, 0.05);\n"
                                             "else\n"
                                                 "discard;\n"
@@ -143,9 +145,7 @@ void PacketRendererGLWidget::setPacket(Packet *packet, QString workingDirectory)
             packetToRender->intensities[voxel].push_back((float)1.0);
     }
 
-    createVoxelTexture( packetToRender->intensities.size(),
-                        packetToRender->intensities[0].size(),
-                        INTERPOLATION_LEVEL);
+    createVoxelTexture();
 
     textureOffset = 0;
     shaderProgram.setUniformValue( "textureOffset", textureOffset);
@@ -162,6 +162,29 @@ void PacketRendererGLWidget::paintGL(){
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     shaderProgram.setUniformValue( "shouldDrawTransparent", false);
+    shaderProgram.setUniformValue( "drawsEdges", true);
+
+    if( edgeVertices.size() > 0 && displayArcs){
+        shaderProgram.setUniformValue( "minThreshold", pairsMinThreshold);
+        shaderProgram.setUniformValue( "maxThreshold", pairsMaxThreshold);
+        shaderProgram.setUniformValue( "minValue", pairsMinValue);
+        shaderProgram.setUniformValue( "maxValue", pairsMaxValue);
+        shaderProgram.setAttributeArray( "vPosition", edgeVertices.constData());
+        shaderProgram.setAttributeArray( "vIndex", edgeTextureIndex.constData());
+        glDrawArrays(GL_LINES, 0, edgeVertices.size());
+    }
+
+    shaderProgram.setUniformValue( "drawsEdges", false);
+    shaderProgram.setUniformValue( "minThreshold", voxelMinThreshold);
+    shaderProgram.setUniformValue( "maxThreshold", voxelMaxThreshold);
+    shaderProgram.setUniformValue( "minValue", voxelMinValue);
+    shaderProgram.setUniformValue( "maxValue", voxelMaxValue);
+
+    if( edgeVertices.size() > 0 && displayArcs){
+        shaderProgram.setAttributeArray( "vPosition", voxelVertices.constData());
+        shaderProgram.setAttributeArray( "vIndex", voxelTextureIndex.constData());
+    }
+
     glDrawElements( GL_TRIANGLES, voxelIndices.size(), GL_UNSIGNED_INT, nullptr);
 
     glDepthMask(GL_FALSE);
@@ -313,83 +336,71 @@ void PacketRendererGLWidget::updateAttributeArrays(){
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, voxelIBO);
     glBufferData( GL_ELEMENT_ARRAY_BUFFER, voxelIndices.size()*sizeof(unsigned int), &(voxelIndices.front()), GL_STATIC_DRAW);
 
-//    for(int pair=0; pair < packetToRender->edges.size(); pair++){
+    edgeVertices.clear();
+    edgeTextureIndex.clear();
 
-//        QVector3D origin(packetToRender->vXYZ[packetToRender->edges[pair].x].x, packetToRender->vXYZ[packetToRender->edges[pair].x].y, packetToRender->vXYZ[packetToRender->edges[pair].x].z);
-//        QVector3D destination(packetToRender->vXYZ[packetToRender->edges[pair].y].x, packetToRender->vXYZ[packetToRender->edges[pair].y].y, packetToRender->vXYZ[packetToRender->edges[pair].y].z);
+    int edgeTextureBegin = (int)packetToRender->vXYZ.size() * packetToRender->intensities[0].size() * INTERPOLATION_LEVEL;
+    for( int pair = 0; pair < (int)packetToRender->edges.size(); pair++){
 
-//        edgeVertices << QVector4D( origin, 1.0) //0
-//                     << QVector4D( destination, 1.0); //1
+        int curEdgeTextureBegin = edgeTextureBegin + pair*packetToRender->edgeIntensities[pair].size()*INTERPOLATION_LEVEL;
+        QVector3D origin(packetToRender->vXYZ[packetToRender->edges[pair].x].x, packetToRender->vXYZ[packetToRender->edges[pair].x].y, packetToRender->vXYZ[packetToRender->edges[pair].x].z);
+        QVector3D destination(packetToRender->vXYZ[packetToRender->edges[pair].y].x, packetToRender->vXYZ[packetToRender->edges[pair].y].y, packetToRender->vXYZ[packetToRender->edges[pair].y].z);
 
-//        edgeTextureIndex <<  QVector2D(0, (float)(pair)/(float)(packetToRender->edges.size()))
-//                               << QVector2D(0, (float)(pair)/(float)(packetToRender->edges.size()));
-//    }
+        edgeVertices << QVector4D( origin, 1.0) //0
+                     << QVector4D( destination, 1.0); //1
+
+        edgeTextureIndex << QVector2D( curEdgeTextureBegin, 0)
+                         << QVector2D( curEdgeTextureBegin, 0);
+    }
 
     initializeShader();
-
-    setThresholdRange(minThreshold, maxThreshold);
-    setMinValue(minValue);
-    setMaxValue(maxValue);
 
     shaderProgram.setAttributeArray( "vPosition", voxelVertices.constData());
     shaderProgram.setAttributeArray( "vIndex", voxelTextureIndex.constData());
 }
 
-void PacketRendererGLWidget::createVoxelTexture(const int row, const int column, const int interpolationLevel){
+void PacketRendererGLWidget::createVoxelTexture(){
 
-    float *voxelBOData = new float[row*column*interpolationLevel];
+    const int totalVoxel = packetToRender->intensities.size();
+    const int totalTime = packetToRender->intensities[0].size();
+    const int totalPairs = packetToRender->edgeIntensities.size();
+    const int totalVoxelIntensityValues = totalVoxel*totalTime*INTERPOLATION_LEVEL;
+    const int totalPairIntensityValues = totalPairs*totalTime*INTERPOLATION_LEVEL;
 
-    for( int curRow = 0; curRow < row; curRow++){
-        for( int curColumn = 0; curColumn < column-1; curColumn++){
+    float *voxelBOData = new float[totalVoxelIntensityValues + totalPairIntensityValues];
 
-            float nextIntensity = packetToRender->intensities[curRow][curColumn+1];
-            float curIntensity = packetToRender->intensities[curRow][curColumn];
-            float interpolation = (float)(nextIntensity - curIntensity)/(float)interpolationLevel;
+    for( int curVoxel = 0; curVoxel < totalVoxel; curVoxel++){
+        for( int curTime = 0; curTime < totalTime; curTime++){
 
-            for( int curInterp = 0; curInterp < interpolationLevel; curInterp++)
-                voxelBOData[curRow*column*interpolationLevel + curColumn*interpolationLevel + curInterp] = curIntensity + curInterp * interpolation;
+            float nextIntensity = packetToRender->intensities[curVoxel][(curTime+1)%totalTime];
+            float curIntensity = packetToRender->intensities[curVoxel][curTime];
+            float interpolation = (float)(nextIntensity - curIntensity)/(float)INTERPOLATION_LEVEL;
+
+            for( int curInterp = 0; curInterp < INTERPOLATION_LEVEL; curInterp++)
+                voxelBOData[curVoxel*totalTime*INTERPOLATION_LEVEL + curTime*INTERPOLATION_LEVEL + curInterp] = curIntensity + curInterp * interpolation;
         }
+    }
 
-        //last column
-        int curColumn = column-1;
-        float nextIntensity = packetToRender->intensities[curRow][0];
-        float curIntensity = packetToRender->intensities[curRow][curColumn];
-        float interpolation = (float)(curIntensity - nextIntensity)/(float)interpolationLevel;
+    for( int curPair = 0; curPair < totalPairs; curPair++){
+        for( int curTime = 0; curTime < totalTime; curTime++){
 
-        for( int curInterp = 0; curInterp < interpolationLevel; curInterp++)
-            voxelBOData[curRow*column*interpolationLevel + curColumn*interpolationLevel + curInterp] = curIntensity + curInterp * interpolation;
+            float nextIntensity = packetToRender->edgeIntensities[curPair][(curTime+1)%totalTime];
+            float curIntensity = packetToRender->edgeIntensities[curPair][curTime];
+            float interpolation = (float)(nextIntensity - curIntensity)/(float)INTERPOLATION_LEVEL;
+
+            for( int curInterp = 0; curInterp < INTERPOLATION_LEVEL; curInterp++)
+                voxelBOData[totalVoxelIntensityValues + curPair*totalTime*INTERPOLATION_LEVEL + curTime*INTERPOLATION_LEVEL + curInterp] = curIntensity + curInterp * interpolation;
+        }
     }
 
     glGenBuffers( 1, &voxelBO);
     glBindBuffer( GL_TEXTURE_BUFFER, voxelBO);
-    glBufferData( GL_TEXTURE_BUFFER, sizeof(float)*row*column*interpolationLevel, voxelBOData, GL_STATIC_DRAW);
-
+    glBufferData( GL_TEXTURE_BUFFER, sizeof(float)*(totalVoxelIntensityValues+totalPairIntensityValues), voxelBOData, GL_STATIC_DRAW);
 
     glGenTextures( 1, &voxelTBO);
     glBindTexture( GL_TEXTURE_BUFFER, voxelTBO);
     glTexBuffer( GL_TEXTURE_BUFFER, GL_R32F, voxelBO);
     shaderProgram.setUniformValue("u_tbo_tex", 0);
-}
-
-void PacketRendererGLWidget::createEdgePairTexture(){
-
-    QString edgeTextureName = "edgeTexture.jpeg";
-    QImage texture;
-
-    if( texture.load( getWorkingDirectory() + QDir::separator() + edgeTextureName))
-       return;
-
-    //if no intensity available, then create fake one with all intensities = 1;
-    if( packetToRender->edgeIntensities.size() < 1){
-
-        packetToRender->edgeIntensities.clear();
-        packetToRender->edgeIntensities.resize( (size_t)packetToRender->edges.size());
-
-        for( int edgePair = 0; edgePair < (int)packetToRender->edges.size(); edgePair++)
-            packetToRender->edgeIntensities[edgePair].push_back((float)1.0);
-    }
-
-    //createTexture( edgeTextureName, packetToRender->edgeIntensities);
 }
 
 void PacketRendererGLWidget::animate(){
@@ -421,36 +432,37 @@ QString PacketRendererGLWidget::getWorkingDirectory(){
 
 void PacketRendererGLWidget::setThresholdRange( float minThreshold, float maxThreshold){
 
-    if( shaderProgram.isLinked()){
-        shaderProgram.setUniformValue( "minThreshold", minThreshold);
-        shaderProgram.setUniformValue( "maxThreshold", maxThreshold);
-    }
+    this->voxelMinThreshold = minThreshold;
+    this->voxelMaxThreshold = maxThreshold;
 }
 
-void PacketRendererGLWidget::setMaxThreshold( float maxThreshold){
+void PacketRendererGLWidget::setPairsThresholdRange( float minThreshold, float maxThreshold){
 
-    if( shaderProgram.isLinked())
-        shaderProgram.setUniformValue( "maxThreshold", maxThreshold);
+    this->pairsMinThreshold = minThreshold;
+    this->pairsMaxThreshold = maxThreshold;
 }
 
-void PacketRendererGLWidget::setMinThreshold( float minThreshold){
+void PacketRendererGLWidget::setVoxelMinValue( float minValue){
 
-    if( shaderProgram.isLinked())
-        shaderProgram.setUniformValue( "minThreshold", minThreshold);
+    this->voxelMinValue = minValue;
 }
 
-void PacketRendererGLWidget::setMinValue( float minValue){
+void PacketRendererGLWidget::setVoxelMaxValue( float maxValue){
 
-    this->minValue = minValue;
-
-    if( shaderProgram.isLinked())
-        shaderProgram.setUniformValue( "minValue", minValue);
+    this->voxelMaxValue = maxValue;
 }
 
-void PacketRendererGLWidget::setMaxValue( float maxValue){
+void PacketRendererGLWidget::setPairsMinValue( float minValue){
 
-    this->maxValue = maxValue;
+    this->pairsMinValue = minValue;
+}
 
-    if( shaderProgram.isLinked())
-        shaderProgram.setUniformValue( "maxValue", maxValue);
+void PacketRendererGLWidget::setPairsMaxValue( float maxValue){
+
+    this->pairsMaxValue = maxValue;
+}
+
+void PacketRendererGLWidget::shouldDisplayArcs( bool shouldDisplay){
+
+    this->displayArcs = shouldDisplay;
 }
