@@ -28,15 +28,15 @@ public:
 
 private:
 
-    QVector<QVector3D> readMatVoxelLocations( QString directory, QString voxelPosVariable);
-    QVector< QVector<float>> readMatVoxelIntensities( QString directory, QString voxelIntensitiesVariable);
-    QVector<QVector2D> readMatEdgePairs( QString directory, QString edgePairsVariable);
-    QVector< QVector<float>> readMatEdgePairIntensities( QString directory, QString edgePairsIntensitiesVariable);
+    void readMatVoxelLocations( QString directory, QString voxelPosVariable, Packet *packet);
+    void readMatVoxelIntensities( QString directory, QString voxelIntensitiesVariable, Packet *packet);
+    void readMatEdgePairs( QString directory, QString edgePairsVariable, Packet *packet);
+    void readMatEdgePairIntensities( QString directory, QString edgePairsIntensitiesVariable, Packet *packet);
 
-    QVector<QVector3D> readVoxelLocations( QString directory);
-    QVector< QVector<float>> readVoxelIntensities( QString directory);
-    QVector<QVector2D> readEdgePairs( QString directory);
-    QVector< QVector<float>> readEdgePairIntensities( QString directory);
+    void readVoxelLocations( QString directory, Packet *packet);
+    void readVoxelIntensities( QString directory, Packet *packet);
+    void readEdgePairs( QString directory, Packet *packet);
+    void readEdgePairIntensities( QString directory, Packet *packet);
 };
 
 #endif // PACKETFILEREADER_H

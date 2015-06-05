@@ -16,64 +16,12 @@ PacketFileReader::~PacketFileReader()
 
 Packet *PacketFileReader::readPacketFromDirectory(QString directory){
 
-    QVector<QVector3D> voxelLocations = readVoxelLocations( directory);
-    QVector<QVector<float>> voxelIntensities = readVoxelIntensities( directory);
-    QVector<QVector2D> edgePairs = readEdgePairs( directory);
-    QVector<QVector<float>> edgePairIntensities = readEdgePairIntensities( directory);
-
     Packet *packet = new Packet();
 
-    //setting voxel locations and intensity values
-    if( voxelLocations.length() > 0) {
-
-        packet->vXYZ.clear();
-        packet->vXYZ.resize( voxelLocations.length());
-        packet->intensities.clear();
-        if( voxelIntensities.length() > 0)
-            packet->intensities.resize( voxelIntensities.length());
-
-        for( int voxel = 0; voxel < voxelLocations.length(); voxel++){
-
-            packet->vXYZ[voxel].x = voxelLocations[voxel].x();
-            packet->vXYZ[voxel].y = voxelLocations[voxel].y();
-            packet->vXYZ[voxel].z = voxelLocations[voxel].z();
-
-            if( packet->intensities.size() > 0) {
-                (packet->intensities[voxel]).clear();
-                if( voxelIntensities[voxel].length() > 0)
-                    (packet->intensities[voxel]).resize(voxelIntensities[voxel].length());
-
-                for( int intensity = 0; intensity < voxelIntensities[voxel].length(); intensity++)
-                    packet->intensities[voxel][intensity] = voxelIntensities[voxel][intensity];
-            }
-        }
-    }
-
-    //setting edge locations and intensity values
-    if( edgePairs.length() > 0){
-
-        packet->edges.clear();
-        packet->edges.resize( (size_t)edgePairs.length());
-        packet->edgeIntensities.clear();
-        if( edgePairIntensities.length())
-            packet->edgeIntensities.resize( (size_t)edgePairIntensities.length());
-
-        for( int edgePair = 0; edgePair < edgePairs.length(); edgePair++){
-
-            packet->edges[edgePair].x = edgePairs[edgePair].x();
-            packet->edges[edgePair].y = edgePairs[edgePair].y();
-
-            if( packet->edgeIntensities.size() > 0){
-
-                (packet->edgeIntensities[edgePair]).clear();
-                if( edgePairIntensities[edgePair].length() > 0)
-                    (packet->edgeIntensities[edgePair]).resize( edgePairIntensities[edgePair].length());
-
-                for( int edgePairIntensity = 0; edgePairIntensity < edgePairIntensities[edgePair].length(); edgePairIntensity++)
-                    packet->edgeIntensities[edgePair][edgePairIntensity] = edgePairIntensities[edgePair][edgePairIntensity];
-            }
-        }
-    }
+    readVoxelLocations( directory, packet);
+    readVoxelIntensities( directory, packet);
+    readEdgePairs( directory, packet);
+    readEdgePairIntensities( directory, packet);
 
     return packet;
 }
@@ -89,75 +37,19 @@ Packet *PacketFileReader::readPacketFromMatlab(QString fileLocation,
     if( !voxelPosVariable.length())
         return packet;
 
-    QVector<QVector3D> voxelLocations = readMatVoxelLocations( fileLocation, voxelPosVariable);
-    QVector<QVector<float>> voxelIntensities = readMatVoxelIntensities( fileLocation, voxelIntensitiesVariable);
-    QVector<QVector2D> edgePairs;
-    QVector<QVector<float>> edgePairIntensities;
-
-    if( edgePairsIntensitiesVariable.length()){
-        edgePairs = readMatEdgePairs( fileLocation, edgePairsVariable);
-        edgePairIntensities = readMatEdgePairIntensities( fileLocation, edgePairsIntensitiesVariable);
-    }
-
-    //setting voxel locations and intensity values
-    if( voxelLocations.length() > 0) {
-
-        packet->vXYZ.clear();
-        packet->vXYZ.resize( voxelLocations.length());
-        packet->intensities.clear();
-        if( voxelIntensities.length() > 0)
-            packet->intensities.resize( voxelIntensities.length());
-
-        for( int voxel = 0; voxel < voxelLocations.length(); voxel++){
-
-            packet->vXYZ[voxel].x = voxelLocations[voxel].x();
-            packet->vXYZ[voxel].y = voxelLocations[voxel].y();
-            packet->vXYZ[voxel].z = voxelLocations[voxel].z();
-
-            if( packet->intensities.size() > 0) {
-                (packet->intensities[voxel]).clear();
-                if( voxelIntensities[voxel].length() > 0)
-                    (packet->intensities[voxel]).resize(voxelIntensities[voxel].length());
-
-                for( int intensity = 0; intensity < voxelIntensities[voxel].length(); intensity++){
-                    packet->intensities[voxel][intensity] = voxelIntensities[voxel][intensity];
-                }
-            }
-        }
-    }
-
-    //setting edge locations and intensity values
-    if( edgePairs.length() > 0){
-
-        packet->edges.clear();
-        packet->edges.resize( (size_t)edgePairs.length());
-        packet->edgeIntensities.clear();
-        if( edgePairIntensities.length())
-            packet->edgeIntensities.resize( (size_t)edgePairIntensities.length());
-
-        for( int edgePair = 0; edgePair < edgePairs.length(); edgePair++){
-
-            packet->edges[edgePair].x = edgePairs[edgePair].x();
-            packet->edges[edgePair].y = edgePairs[edgePair].y();
-
-            if( packet->edgeIntensities.size() > 0){
-
-                (packet->edgeIntensities[edgePair]).clear();
-                if( edgePairIntensities[edgePair].length() > 0)
-                    (packet->edgeIntensities[edgePair]).resize( edgePairIntensities[edgePair].length());
-
-                for( int edgePairIntensity = 0; edgePairIntensity < edgePairIntensities[edgePair].length(); edgePairIntensity++)
-                    packet->edgeIntensities[edgePair][edgePairIntensity] = edgePairIntensities[edgePair][edgePairIntensity];
-            }
-        }
-    }
+    readMatVoxelLocations( fileLocation, voxelPosVariable, packet);
+    readMatVoxelIntensities( fileLocation, voxelIntensitiesVariable, packet);
+    readMatEdgePairs( fileLocation, edgePairsVariable, packet);
+    readMatEdgePairIntensities( fileLocation, edgePairsIntensitiesVariable, packet);
 
     return packet;
 }
 
-QVector<QVector3D> PacketFileReader::readMatVoxelLocations( QString directory, QString voxelPosVariable){
+void PacketFileReader::readMatVoxelLocations( QString directory, QString voxelPosVariable, Packet *packet){
 
-    QVector<QVector3D> voxelLocations;
+    if( !voxelPosVariable.length())
+        return;
+
     //here we assume that the file contains
     //2 consecutive lines. in the first line
     //there is position information (x y z)
@@ -180,19 +72,20 @@ QVector<QVector3D> PacketFileReader::readMatVoxelLocations( QString directory, Q
 
     const size_t *dims = mxGetDimensions_730( pa);
     double *mxData = (double*)mxGetData( pa);
+    packet->vXYZ.clear();
+    //can previously resize here!!!
 
     for( int row = 0; row < (int)dims[0]; row++)
-        for( int column = 0; (int)column < dims[1]; column += 3)
-            voxelLocations << QVector3D( mxData[dims[0] * column + row],
-                                         mxData[dims[0] * (column+1) + row],
-                                         mxData[dims[0] * (column+2) + row]);
-
-    return voxelLocations;
+        for( int column = 0; column < (int)dims[1]; column += 3)
+            packet->vXYZ.push_back( libsimple::Packet::Point3D( mxData[dims[0] * column + row],
+                                                                mxData[dims[0] * (column+1) + row],
+                                                                mxData[dims[0] * (column+2) + row]));
 }
 
-QVector< QVector<float>> PacketFileReader::readMatVoxelIntensities( QString directory, QString voxelIntensitiesVariable){
+void PacketFileReader::readMatVoxelIntensities( QString directory, QString voxelIntensitiesVariable, Packet *packet){
 
-    QVector< QVector<float>> voxelIntensities;
+    if( !voxelIntensitiesVariable.length())
+        return;
 
     QString voxelIntensityFile = directory;
 
@@ -209,23 +102,23 @@ QVector< QVector<float>> PacketFileReader::readMatVoxelIntensities( QString dire
 
     const size_t *dims = mxGetDimensions_730( pa);
     double *mxData = (double*)mxGetData( pa);
+    packet->intensities.clear();
 
     for( int row = 0; row < (int)dims[0]; row++){
-        QVector<float> intensityVectorOfVoxel;
-        for( int column = 0; (int)column < dims[1]; column++)
-            intensityVectorOfVoxel << mxData[dims[0] * column + row];
-        voxelIntensities << intensityVectorOfVoxel;
-    }
 
-    return voxelIntensities;
+        packet->intensities.push_back( vector<float>());
+
+        for( int column = 0; column < (int)dims[1]; column++)
+            packet->intensities.at(packet->intensities.size()-1).push_back(mxData[dims[0] * column + row]);
+    }
 }
 
-QVector<QVector2D> PacketFileReader::readMatEdgePairs( QString directory, QString edgePairsVariable){
+void PacketFileReader::readMatEdgePairs( QString directory, QString edgePairsVariable, Packet *packet){
 
-    QVector<QVector2D> edgePairs;
+    if( !edgePairsVariable.length())
+        return;
 
     QString edgePairsFile = directory;
-
 
     MATFile *mFile = NULL;
     mFile = matOpen(edgePairsFile.toStdString().c_str(),"r");
@@ -238,23 +131,22 @@ QVector<QVector2D> PacketFileReader::readMatEdgePairs( QString directory, QStrin
     if (pa == NULL)
         printf("Error reading existing matrix %s\n");
     size_t rowSize = mxGetM(pa);
+    packet->edges.clear();
 
     for(size_t i=0; i < rowSize; i++){
          mxArray *cellArray = NULL;
          cellArray = mxGetCell_730(pa,i);
          size_t cellSize = mxGetN(cellArray);
          double *mxData = (double*)mxGetData( cellArray);
-         for(int k = 0; k < cellSize; k++)
-            edgePairs << QVector2D(i, mxData[k]-1);
+         for(int k = 0; k < (int)cellSize; k++)
+            packet->edges.push_back( libsimple::Packet::Point2D((float)i, (float)mxData[k]-1));
     }
-
-
-    return edgePairs;
 }
 
-QVector< QVector<float>> PacketFileReader::readMatEdgePairIntensities( QString directory, QString edgePairsIntensitiesVariable){
+void PacketFileReader::readMatEdgePairIntensities( QString directory, QString edgePairsIntensitiesVariable, Packet *packet){
 
-    QVector< QVector<float>> edgePairIntensities;
+    if( !edgePairsIntensitiesVariable.length())
+        return;
 
     QString edgePairIntensitiesFile = directory;
 
@@ -271,20 +163,18 @@ QVector< QVector<float>> PacketFileReader::readMatEdgePairIntensities( QString d
 
     const size_t *dims = mxGetDimensions_730( pa);
     double *mxData = (double*)mxGetData( pa);
+    packet->edgeIntensities.clear();
 
     for( int row = 0; row < (int)dims[0]; row++){
-        QVector<float> intensityOfPairInTime;
-        for( int column = 0; (int)column < dims[1]; column++)
-            intensityOfPairInTime << mxData[dims[0] * column + row];
-        edgePairIntensities << intensityOfPairInTime;
-    }
 
-    return edgePairIntensities;
+        packet->edgeIntensities.push_back( vector<float>());
+        for( int column = 0; column < (int)dims[1]; column++)
+            packet->edgeIntensities.at(packet->edgeIntensities.size()-1).push_back(mxData[dims[0] * column + row]);
+    }
 }
 
-QVector<QVector3D> PacketFileReader::readVoxelLocations( QString directory){
+void PacketFileReader::readVoxelLocations( QString directory, Packet *packet){
 
-    QVector<QVector3D> voxelLocations;
     //here we assume that the file contains
     //2 consecutive lines. in the first line
     //there is position information (x y z)
@@ -296,9 +186,10 @@ QVector<QVector3D> PacketFileReader::readVoxelLocations( QString directory){
     if(!voxelLocationFile.open(QIODevice::ReadOnly))
     {
         qDebug() << "error opening file: " << voxelLocationFile.error();
-        return voxelLocations;
+        return;
     }
 
+    packet->vXYZ.clear();
     QTextStream instream(&voxelLocationFile);
     QString pos;
 
@@ -306,55 +197,49 @@ QVector<QVector3D> PacketFileReader::readVoxelLocations( QString directory){
 
         QRegExp rx("[ ]");
         QStringList list = pos.split(rx, QString::SkipEmptyParts);
-        voxelLocations << QVector3D( list.at(0).toFloat(), list.at(1).toFloat(), list.at(2).toFloat());
+        packet->vXYZ.push_back( libsimple::Packet::Point3D(list.at(0).toFloat(), list.at(1).toFloat(), list.at(2).toFloat()));
     }
-    voxelLocationFile.close();
 
-    return voxelLocations;
+    voxelLocationFile.close();
 }
 
-QVector< QVector<float>> PacketFileReader::readVoxelIntensities( QString directory){
-
-    QVector< QVector<float>> voxelIntensities;
+void PacketFileReader::readVoxelIntensities( QString directory, Packet *packet){
 
     QFile voxelIntensityFile(directory + QDir::separator() + "intensities.txt");
 
     if(!voxelIntensityFile.open(QIODevice::ReadOnly))
     {
         qDebug() << "error opening file: " << voxelIntensityFile.error();
-        return voxelIntensities;
+        return;
     }
 
     QTextStream instream(&voxelIntensityFile);
     QString intensitiesOfVoxel;
 
+    packet->intensities.clear();
+
     while( (intensitiesOfVoxel = instream.readLine()) != NULL){
 
         QRegExp rx("[,]");
         QStringList list = intensitiesOfVoxel.split(rx, QString::SkipEmptyParts);
-        QVector<float> intensityVectorOfVoxel;
+        packet->intensities.push_back( vector<float>());
 
         for( int i = 0; i < list.length(); i++)
-            intensityVectorOfVoxel << list.at(i).toFloat();
-
-        voxelIntensities << intensityVectorOfVoxel;
+            packet->intensities.at(packet->intensities.size()-1).push_back(list.at(i).toFloat());
     }
-
-    return voxelIntensities;
 }
 
-QVector<QVector2D> PacketFileReader::readEdgePairs( QString directory){
-
-    QVector<QVector2D> edgePairs;
+void PacketFileReader::readEdgePairs( QString directory, Packet *packet){
 
     QFile edgePairFile(directory + QDir::separator() + "edgeConnections.txt");
 
     if(!edgePairFile.open(QIODevice::ReadOnly))
     {
         qDebug() << "error opening file: " << edgePairFile.error();
-        return edgePairs;
+        return;
     }
 
+    packet->edges.clear();
     QTextStream instream(&edgePairFile);
     QString edgePairLine;
     int count = 0;
@@ -364,28 +249,25 @@ QVector<QVector2D> PacketFileReader::readEdgePairs( QString directory){
         QRegExp rx("[ ]");
         QStringList list = edgePairLine.split(rx, QString::SkipEmptyParts);
         for(int i=0; i< list.length();i++)
-            edgePairs << QVector2D(count, list[i].toInt()-1);
+            packet->edges.push_back( libsimple::Packet::Point2D((float)count, (float)list[i].toInt()-1));
 
         count++;
     }
 
     edgePairFile.close();
-
-    return edgePairs;
 }
 
-QVector< QVector<float>> PacketFileReader::readEdgePairIntensities( QString directory){
-
-    QVector< QVector<float>> edgePairIntensities;
+void PacketFileReader::readEdgePairIntensities( QString directory, Packet *packet){
 
     QFile contEdgeIntensityFile( directory + QDir::separator() + "edgeIntensities.txt");
 
     if(!contEdgeIntensityFile.open(QIODevice::ReadOnly))
     {
         qDebug() << "error opening file: " << contEdgeIntensityFile.error();
-        return edgePairIntensities;
+        return;
     }
 
+    packet->edgeIntensities.clear();
     QTextStream instream(&contEdgeIntensityFile);
     QString intensityOfPair;
 
@@ -393,13 +275,9 @@ QVector< QVector<float>> PacketFileReader::readEdgePairIntensities( QString dire
 
         QRegExp rx("[,]");
         QStringList list = intensityOfPair.split(rx, QString::SkipEmptyParts);
-        QVector<float> intensityOfPairInTime;
 
+        packet->edgeIntensities.push_back( vector<float>());
         for( int i = 0; i < list.length(); i++)
-            intensityOfPairInTime << list.at(i).toFloat();
-
-        edgePairIntensities << intensityOfPairInTime;
+            packet->edgeIntensities.at(packet->edgeIntensities.size()-1).push_back(list.at(i).toFloat());
     }
-
-    return edgePairIntensities;
 }
