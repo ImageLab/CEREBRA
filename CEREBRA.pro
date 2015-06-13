@@ -18,7 +18,9 @@ SOURCES += main.cpp\
 
 HEADERS  += mainwindow.h \
     packetrendererglwidget.h \
-    packetfilereader.h
+    packetfilereader.h \
+    objparser.h \
+    brain_cover.h
 
 FORMS    += mainwindow.ui
 

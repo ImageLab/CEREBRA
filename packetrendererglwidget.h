@@ -7,7 +7,7 @@
 #include <QGLShaderProgram>
 #include <QGLFunctions>
 #include <QVector>
-
+//#include "brain_cover.h"
 #include "Packet.h"
 #include <QOpenGLFunctions_3_3_Core>
 

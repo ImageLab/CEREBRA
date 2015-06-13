@@ -49,7 +49,7 @@ void MainWindow::loadButtonClicked(){
     QString directoryName = QFileDialog::getExistingDirectory();
 
     if( !directoryName.isNull()){
-        ui->displayButton->setEnabled(false);
+        ui->matlabTab->setEnabled(false);
         ui->packetRendererGLWidget->setPacket( reader.readPacketFromDirectory( directoryName), directoryName);
     }
 }
@@ -80,19 +80,22 @@ void MainWindow::loadMatFileButtonClicked(){
     if (variables == NULL)
       printf("Error reading directory of file");
 
+    ui->comboBox->clear();
+    ui->comboBox_2->clear();
+    ui->comboBox_3->clear();
+    ui->comboBox_4->clear();
+
     ui->comboBox->addItem("");
     ui->comboBox_2->addItem("");
     ui->comboBox_3->addItem("");
     ui->comboBox_4->addItem("");
 
-    for(int k=0; k < ndir ; k++)
+    for(int k=0; k < ndir ; k++){
          ui->comboBox->addItem(QString(variables[k]));
-    for(int k=0; k < ndir ; k++)
          ui->comboBox_2->addItem(QString(variables[k]));
-    for(int k=0; k < ndir ; k++)
          ui->comboBox_3->addItem(QString(variables[k]));
-    for(int k=0; k < ndir ; k++)
          ui->comboBox_4->addItem(QString(variables[k]));
+    }
 
     ui->matlabTab->setEnabled(true);
 }
