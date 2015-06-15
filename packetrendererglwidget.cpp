@@ -94,6 +94,8 @@ void PacketRendererGLWidget::initializeShader(){
 
     QString fragmentShaderSource = "#version 430\n"
 
+                                   "uniform float minValue;\n"
+                                   "uniform float maxValue;\n"
                                    "uniform float minThreshold;\n"
                                    "uniform float maxThreshold;\n"
                                    "uniform bool shouldDrawTransparent;\n"
@@ -102,7 +104,8 @@ void PacketRendererGLWidget::initializeShader(){
 
                                    "out vec4 fColor;\n"
                                    "void main(void){\n"
-                                        "if(color.x <= maxThreshold && color.x >= minThreshold)\n"
+                                        "float intensity = ((color.x)*(maxValue-minValue)) + minValue;\n"
+                                        "if(intensity <= maxThreshold && intensity >= minThreshold)\n"
                                             "if( !drawsEdges && shouldDrawTransparent)\n"
                                                 "fColor = vec4(0.83, 0.83, 0.83, 0.05);\n"
                                             "else\n"
