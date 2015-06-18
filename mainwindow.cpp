@@ -1,10 +1,10 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QFileDialog>
+#include <QMessageBox>
 #include <iostream>
 #include <cmath>
-#include "mat.h"
-#include "matrix.h"
+#include "libmatiohelper.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -60,25 +60,21 @@ void MainWindow::loadMatFileButtonClicked(){
     if(fileName.length()== 0)
         return;
 
-    ui->displayButton->setEnabled(true);
-
     QDir d = QFileInfo(fileName).absoluteDir();
     directory = d.absolutePath();
 
-    MATFile *mFile = NULL;
-    mFile = matOpen(fileName.toStdString().c_str(),"r");
-    if(mFile == NULL){
-        cout << "error opening MAT file: " << endl;
-        ui->matlabTab->setEnabled(false);
+    std::vector< char *> variables;
+
+    if( LibMatioHelper::getVariables( fileName.toStdString().c_str(), variables) == EXIT_FAILURE){
+
+        QMessageBox::warning(this, tr("Error"),
+                                   tr("There is an error while openning the file.\n"),
+                                   QMessageBox::Ok);
+
         return;
     }
 
-    int ndir;
-    const char **variables;
-
-    variables = (const char **)matGetDir(mFile, &ndir);
-    if (variables == NULL)
-      printf("Error reading directory of file");
+    ui->displayButton->setEnabled(true);
 
     ui->comboBox->clear();
     ui->comboBox_2->clear();
@@ -90,11 +86,12 @@ void MainWindow::loadMatFileButtonClicked(){
     ui->comboBox_3->addItem("");
     ui->comboBox_4->addItem("");
 
-    for(int k=0; k < ndir ; k++){
-         ui->comboBox->addItem(QString(variables[k]));
-         ui->comboBox_2->addItem(QString(variables[k]));
-         ui->comboBox_3->addItem(QString(variables[k]));
-         ui->comboBox_4->addItem(QString(variables[k]));
+    for( int curVar = 0; curVar < (int)variables.size(); curVar++){
+
+        ui->comboBox->addItem(QString(variables.at(curVar)));
+        ui->comboBox_2->addItem(QString(variables.at(curVar)));
+        ui->comboBox_3->addItem(QString(variables.at(curVar)));
+        ui->comboBox_4->addItem(QString(variables.at(curVar)));
     }
 
     ui->matlabTab->setEnabled(true);
@@ -221,7 +218,7 @@ void MainWindow::setThreshold( bool isVoxel){
     float minValue = minTextField->text().toFloat();
     float threshold = minValue + ((float)(maxValue-minValue)*(float)thresholdSlider->value()/thresholdSlider->maximum());
     float gap = ((float)(maxValue - minValue)/(float)2)*((float)rangeSlider->value()/(float)100);
-    float minThreshold = (setRangeCheckBox->isChecked() && threshold - gap >= thresholdSlider->minimum())?(threshold-gap):thresholdSlider->minimum();
+    float minThreshold = (setRangeCheckBox->isChecked() && threshold - gap >= minValue)?(threshold-gap):minValue;
     float maxThreshold = (setRangeCheckBox->isChecked())?(threshold + gap > maxValue)?maxValue:(threshold+gap):threshold;
 
     if( isVoxel)
@@ -247,7 +244,7 @@ void MainWindow::setRange( bool isVoxel){
     float minValue = minTextField->text().toFloat();
     float threshold = minValue + ((float)(maxValue-minValue)*(float)thresholdSlider->value()/thresholdSlider->maximum());
     float gap = ((float)(maxValue - minValue)/(float)2)*((float)rangeSlider->value()/(float)100);
-    float minThreshold = (threshold - gap < 0)?0:(threshold-gap);
+    float minThreshold = (threshold - gap < minValue)?minValue:(threshold-gap);
     float maxThreshold = (threshold + gap > maxValue)?maxValue:(threshold+gap);
 
     if( isVoxel)

@@ -7,8 +7,6 @@
 #include <QtGui>
 #include <iostream>
 #include <cmath>
-#include "mat.h"
-#include "matrix.h"
 
 using namespace libsimple;
 

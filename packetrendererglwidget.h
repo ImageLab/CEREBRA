@@ -140,11 +140,11 @@ private:
     std::vector<unsigned int> edgeIndices;
     QVector<unsigned int> indicesQ;
     QVector<QVector4D> voxelVertices; //passed to gpu
-    QVector<QVector2D> voxelTextureIndex; //passed to gpu
-    QVector<QVector4D> colors; //passed to gpu
+    QVector<GLfloat> voxelTextureIndex; //passed to gpu
     QVector<QVector4D> edgeVertices; //passed to gpu
-    QVector<QVector2D> edgeTextureIndex; //passed to gpu
+    QVector<GLfloat> edgeTextureIndex; //passed to gpu
     GLuint textureOffset;
+    GLuint interpolationOffset;
     QMatrix4x4 projection;
     QMatrix4x4 modelView;
     QMatrix4x4 translationMatrix;

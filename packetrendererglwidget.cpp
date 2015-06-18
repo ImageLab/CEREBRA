@@ -5,8 +5,9 @@
 //used for each face) vertex connections
 #define NUM_OF_CON_POINTS_FOR_EACH_MESH 36
 #define NUM_OF_VERTICES 8
-#define INTERPOLATION_LEVEL 6
+#define INTERPOLATION_LEVEL 12
 #define UPDATE_FREQ_IN_MS 85
+#define ANIMATION_BUFFER_SIZE 0
 
 PacketRendererGLWidget::PacketRendererGLWidget( QWidget *parent) : QGLWidget( parent)
 {
@@ -73,11 +74,18 @@ void PacketRendererGLWidget::initializeShader(){
     QString vertexShaderSource = "#version 430\n"
 
                                 "in vec4 vPosition;\n"
-                                "in vec2 vIndex;\n"
+                                "in float vIndex;\n"
 
+                                "uniform int interpolationLevel;\n"
+                                "uniform int timeLength;\n"
                                 "uniform float minValue;\n"
                                 "uniform float maxValue;\n"
+                                "uniform float minThreshold;\n"
+                                "uniform float maxThreshold;\n"
+                                "uniform bool shouldDrawTransparent;\n"
+                                "uniform bool drawsEdges;\n"
                                 "uniform int textureOffset;\n"
+                                "uniform int interpolationOffset;\n"
                                 "uniform mat4 modelView;\n"
                                 "uniform mat4 projection;\n"
                                 "uniform mat4 translationMatrix;\n"
@@ -86,35 +94,33 @@ void PacketRendererGLWidget::initializeShader(){
                                 "out vec4 color;\n"
 
                                 "void main(void){\n"
-
-                                    "float r = ((texelFetch(u_tbo_tex, int(vIndex.x) + textureOffset).r)-minValue)/(maxValue - minValue);\n"
+                                    "float curIntensity = texelFetch(u_tbo_tex, int(vIndex) + textureOffset).r;\n"
+                                    "float nextIntensity = texelFetch(u_tbo_tex, int(vIndex + mod(textureOffset+1, timeLength))).r;\n"
+                                    "float intensity = curIntensity + interpolationOffset * ((nextIntensity - curIntensity)/(interpolationLevel));\n"
+                                    "float r = (intensity-minValue)/(maxValue - minValue);\n"
+                                    "if(intensity <= maxThreshold && intensity >= minThreshold)\n"
+                                        "if( !drawsEdges && shouldDrawTransparent)\n"
+                                            "color = vec4(0.83, 0.83, 0.83, 0.05);\n"
+                                        "else\n"
+                                            "color = vec4(0,0,0,0);\n"
+                                    "else\n"
+                                        "if( !shouldDrawTransparent)\n"
+                                            "color = vec4(r, 1-r, 0, 1.0);\n"
+                                        "else\n"
+                                            "color = vec4(0,0,0,0);\n"
                                     "gl_Position = projection * translationMatrix * modelView * vPosition;\n"
-                                    "color = vec4(r, 1-r, 0, 1.0);\n"
                                 "}";
 
     QString fragmentShaderSource = "#version 430\n"
 
-                                   "uniform float minValue;\n"
-                                   "uniform float maxValue;\n"
-                                   "uniform float minThreshold;\n"
-                                   "uniform float maxThreshold;\n"
-                                   "uniform bool shouldDrawTransparent;\n"
-                                   "uniform bool drawsEdges;\n"
                                    "in vec4 color;\n"
 
                                    "out vec4 fColor;\n"
                                    "void main(void){\n"
-                                        "float intensity = ((color.x)*(maxValue-minValue)) + minValue;\n"
-                                        "if(intensity <= maxThreshold && intensity >= minThreshold)\n"
-                                            "if( !drawsEdges && shouldDrawTransparent)\n"
-                                                "fColor = vec4(0.83, 0.83, 0.83, 0.05);\n"
-                                            "else\n"
-                                                "discard;\n"
-                                        "else\n"
-                                            "if( !shouldDrawTransparent)\n"
-                                                "fColor = color;\n"
-                                            "else\n"
-                                                "discard;\n"
+                                        "if( color.x + color.y < 0.5)\n"
+                                            "discard;\n"
+
+                                        "fColor = color;\n"
                                    "}";
 
     shaderProgram.addShaderFromSourceCode(QGLShader::Vertex, vertexShaderSource);
@@ -151,10 +157,14 @@ void PacketRendererGLWidget::setPacket(Packet *packet, QString workingDirectory)
     createVoxelTexture();
 
     textureOffset = 0;
-    shaderProgram.setUniformValue( "textureOffset", textureOffset);
-
+    interpolationOffset = 0;
     updateAttributeArrays();
     updateMatrices();
+
+    shaderProgram.setUniformValue( "textureOffset", textureOffset);
+    shaderProgram.setUniformValue( "interpolationOffset", interpolationOffset);
+    shaderProgram.setUniformValue( "interpolationLevel", INTERPOLATION_LEVEL);
+    shaderProgram.setUniformValue( "timeLength", packetToRender->intensities[0].size());
 
     if( shouldAnimate)
         aTimer->start(UPDATE_FREQ_IN_MS); //updating per this amount of milliseconds
@@ -173,7 +183,7 @@ void PacketRendererGLWidget::paintGL(){
         shaderProgram.setUniformValue( "minValue", pairsMinValue);
         shaderProgram.setUniformValue( "maxValue", pairsMaxValue);
         shaderProgram.setAttributeArray( "vPosition", edgeVertices.constData());
-        shaderProgram.setAttributeArray( "vIndex", edgeTextureIndex.constData());
+        shaderProgram.setAttributeArray( "vIndex", edgeTextureIndex.constData(), 1);
         glDrawArrays(GL_LINES, 0, edgeVertices.size());
     }
 
@@ -185,7 +195,7 @@ void PacketRendererGLWidget::paintGL(){
 
     if( edgeVertices.size() > 0 && displayArcs){
         shaderProgram.setAttributeArray( "vPosition", voxelVertices.constData());
-        shaderProgram.setAttributeArray( "vIndex", voxelTextureIndex.constData());
+        shaderProgram.setAttributeArray( "vIndex", voxelTextureIndex.constData(), 1);
     }
 
     glDrawElements( GL_TRIANGLES, voxelIndices.size(), GL_UNSIGNED_INT, nullptr);
@@ -298,7 +308,7 @@ void PacketRendererGLWidget::updateAttributeArrays(){
     for( int currentVoxel = 0; currentVoxel < (int)packetToRender->vXYZ.size(); currentVoxel++){
 
         int curVoxelIndexBegin = NUM_OF_VERTICES * currentVoxel;
-        int curVoxelTextureBegin = currentVoxel*packetToRender->intensities[currentVoxel].size()*INTERPOLATION_LEVEL;
+        int curVoxelTextureBegin = currentVoxel*packetToRender->intensities[currentVoxel].size();
         float x = packetToRender->vXYZ[currentVoxel].x;
         float y = packetToRender->vXYZ[currentVoxel].y;
         float z = packetToRender->vXYZ[currentVoxel].z;
@@ -312,14 +322,14 @@ void PacketRendererGLWidget::updateAttributeArrays(){
                       << QVector4D(x+0.35, y+0.35, z-0.35, 1.0) //6
                       << QVector4D(x-0.35, y+0.35, z-0.35, 1.0); //7
 
-        voxelTextureIndex << QVector2D(curVoxelTextureBegin, 0)
-                          << QVector2D(curVoxelTextureBegin, 0)
-                          << QVector2D(curVoxelTextureBegin, 0)
-                          << QVector2D(curVoxelTextureBegin, 0)
-                          << QVector2D(curVoxelTextureBegin, 0)
-                          << QVector2D(curVoxelTextureBegin, 0)
-                          << QVector2D(curVoxelTextureBegin, 0)
-                          << QVector2D(curVoxelTextureBegin, 0);
+        voxelTextureIndex << curVoxelTextureBegin
+                          << curVoxelTextureBegin
+                          << curVoxelTextureBegin
+                          << curVoxelTextureBegin
+                          << curVoxelTextureBegin
+                          << curVoxelTextureBegin
+                          << curVoxelTextureBegin
+                          << curVoxelTextureBegin;
 
         voxelIndices[voxelIndexCount++] = curVoxelIndexBegin + 0;  voxelIndices[voxelIndexCount++] = curVoxelIndexBegin + 1;  voxelIndices[voxelIndexCount++] = curVoxelIndexBegin + 2; //front
         voxelIndices[voxelIndexCount++] = curVoxelIndexBegin + 2;  voxelIndices[voxelIndexCount++] = curVoxelIndexBegin + 3;  voxelIndices[voxelIndexCount++] = curVoxelIndexBegin + 0;
@@ -342,24 +352,24 @@ void PacketRendererGLWidget::updateAttributeArrays(){
     edgeVertices.clear();
     edgeTextureIndex.clear();
 
-    int edgeTextureBegin = (int)packetToRender->vXYZ.size() * packetToRender->intensities[0].size() * INTERPOLATION_LEVEL;
+    int edgeTextureBegin = (int)packetToRender->vXYZ.size() * packetToRender->intensities[0].size();
     for( int pair = 0; pair < (int)packetToRender->edges.size(); pair++){
 
-        int curEdgeTextureBegin = edgeTextureBegin + pair*packetToRender->edgeIntensities[pair].size()*INTERPOLATION_LEVEL;
+        int curEdgeTextureBegin = edgeTextureBegin + pair*packetToRender->edgeIntensities[pair].size();
         QVector3D origin(packetToRender->vXYZ[packetToRender->edges[pair].x].x, packetToRender->vXYZ[packetToRender->edges[pair].x].y, packetToRender->vXYZ[packetToRender->edges[pair].x].z);
         QVector3D destination(packetToRender->vXYZ[packetToRender->edges[pair].y].x, packetToRender->vXYZ[packetToRender->edges[pair].y].y, packetToRender->vXYZ[packetToRender->edges[pair].y].z);
 
         edgeVertices << QVector4D( origin, 1.0) //0
                      << QVector4D( destination, 1.0); //1
 
-        edgeTextureIndex << QVector2D( curEdgeTextureBegin, 0)
-                         << QVector2D( curEdgeTextureBegin, 0);
+        edgeTextureIndex << curEdgeTextureBegin
+                         << curEdgeTextureBegin;
     }
 
     initializeShader();
 
     shaderProgram.setAttributeArray( "vPosition", voxelVertices.constData());
-    shaderProgram.setAttributeArray( "vIndex", voxelTextureIndex.constData());
+    shaderProgram.setAttributeArray( "vIndex", voxelTextureIndex.constData(), 1);
 }
 
 void PacketRendererGLWidget::createVoxelTexture(){
@@ -367,34 +377,18 @@ void PacketRendererGLWidget::createVoxelTexture(){
     const int totalVoxel = packetToRender->intensities.size();
     const int totalTime = packetToRender->intensities[0].size();
     const int totalPairs = packetToRender->edgeIntensities.size();
-    const int totalVoxelIntensityValues = totalVoxel*totalTime*INTERPOLATION_LEVEL;
-    const int totalPairIntensityValues = totalPairs*totalTime*INTERPOLATION_LEVEL;
+    const int totalVoxelIntensityValues = totalVoxel*totalTime;
+    const int totalPairIntensityValues = totalPairs*totalTime;
 
     float *voxelBOData = new float[totalVoxelIntensityValues + totalPairIntensityValues];
 
-    for( int curVoxel = 0; curVoxel < totalVoxel; curVoxel++){
-        for( int curTime = 0; curTime < totalTime; curTime++){
+    for( int curVoxel = 0; curVoxel < totalVoxel; curVoxel++)
+        for( int curTime = 0; curTime < totalTime; curTime++)
+            voxelBOData[curVoxel*totalTime + curTime] = packetToRender->intensities[curVoxel][curTime];
 
-            float nextIntensity = packetToRender->intensities[curVoxel][(curTime+1)%totalTime];
-            float curIntensity = packetToRender->intensities[curVoxel][curTime];
-            float interpolation = (float)(nextIntensity - curIntensity)/(float)INTERPOLATION_LEVEL;
-
-            for( int curInterp = 0; curInterp < INTERPOLATION_LEVEL; curInterp++)
-                voxelBOData[curVoxel*totalTime*INTERPOLATION_LEVEL + curTime*INTERPOLATION_LEVEL + curInterp] = curIntensity + curInterp * interpolation;
-        }
-    }
-
-    for( int curPair = 0; curPair < totalPairs; curPair++){
-        for( int curTime = 0; curTime < totalTime; curTime++){
-
-            float nextIntensity = packetToRender->edgeIntensities[curPair][(curTime+1)%totalTime];
-            float curIntensity = packetToRender->edgeIntensities[curPair][curTime];
-            float interpolation = (float)(nextIntensity - curIntensity)/(float)INTERPOLATION_LEVEL;
-
-            for( int curInterp = 0; curInterp < INTERPOLATION_LEVEL; curInterp++)
-                voxelBOData[totalVoxelIntensityValues + curPair*totalTime*INTERPOLATION_LEVEL + curTime*INTERPOLATION_LEVEL + curInterp] = curIntensity + curInterp * interpolation;
-        }
-    }
+    for( int curPair = 0; curPair < totalPairs; curPair++)
+        for( int curTime = 0; curTime < totalTime; curTime++)
+            voxelBOData[totalVoxelIntensityValues + curPair*totalTime + curTime] = packetToRender->edgeIntensities[curPair][curTime];
 
     glGenBuffers( 1, &voxelBO);
     glBindBuffer( GL_TEXTURE_BUFFER, voxelBO);
@@ -411,12 +405,15 @@ void PacketRendererGLWidget::animate(){
     if( packetToRender == NULL || packetToRender->intensities.size() < 1)
         return;
 
-    textureOffset++;
+    interpolationOffset = (interpolationOffset+1)%INTERPOLATION_LEVEL;
+    if( interpolationOffset == 0){
 
-    if( textureOffset >= INTERPOLATION_LEVEL*packetToRender->intensities[0].size())
-        textureOffset = 0;
+        textureOffset = (textureOffset+1)%packetToRender->intensities[0].size();
+        shaderProgram.setUniformValue( "textureOffset", textureOffset);
+    }
 
-    shaderProgram.setUniformValue( "textureOffset", textureOffset);
+    shaderProgram.setUniformValue( "interpolationOffset", interpolationOffset);
+
     updateGL();
 }
 
