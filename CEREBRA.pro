@@ -25,16 +25,8 @@ HEADERS  += mainwindow.h \
 
 FORMS    += mainwindow.ui
 
-INCLUDEPATH += $$PWD/
-DEPENDPATH += $$PWD/
 INCLUDEPATH += $$PWD/include
 DEPENDPATH += $$PWD/include
-INCLUDEPATH += $$PWD/lib/extern/include
-DEPENDPATH += $$PWD/lib/extern/include
 
-LIBS += -lglew32 -lglu32 -lopengl32
 LIBS += -L"$$_PRO_FILE_PWD_/lib" -llibsimple
-LIBS += -L"$$_PRO_FILE_PWD_/lib/extern/lib/win32/microsoft" -llibeng
-LIBS += -L"$$_PRO_FILE_PWD_/lib/extern/lib/win32/microsoft" -llibmat
-LIBS += -L"$$_PRO_FILE_PWD_/lib/extern/lib/win32/microsoft" -llibmx
 LIBS += -L"$$_PRO_FILE_PWD_/lib" -llibmatio

@@ -26,10 +26,10 @@ public:
 
 private:
 
-    void readMatVoxelLocations( QString directory, QString voxelPosVariable, Packet *packet);
-    void readMatVoxelIntensities( QString directory, QString voxelIntensitiesVariable, Packet *packet);
-    void readMatEdgePairs( QString directory, QString edgePairsVariable, Packet *packet);
-    void readMatEdgePairIntensities( QString directory, QString edgePairsIntensitiesVariable, Packet *packet);
+    void readMatVoxelLocations( QString fileName, QString voxelPosVariable, Packet *packet);
+    void readMatVoxelIntensities( QString fileName, QString voxelIntensitiesVariable, Packet *packet);
+    void readMatEdgePairs( QString fileName, QString edgePairsVariable, Packet *packet);
+    void readMatEdgePairIntensities( QString fileName, QString edgePairsIntensitiesVariable, Packet *packet);
 
     void readVoxelLocations( QString directory, Packet *packet);
     void readVoxelIntensities( QString directory, Packet *packet);

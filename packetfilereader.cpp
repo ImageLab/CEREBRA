@@ -1,7 +1,6 @@
 #include "packetfilereader.h"
 #include "mainwindow.h"
-#include "mat.h"
-#include "matrix.h"
+#include "matio.h"
 #include <QMainWindow>
 
 PacketFileReader::PacketFileReader()
@@ -45,132 +44,165 @@ Packet *PacketFileReader::readPacketFromMatlab(QString fileLocation,
     return packet;
 }
 
-void PacketFileReader::readMatVoxelLocations( QString directory, QString voxelPosVariable, Packet *packet){
+void PacketFileReader::readMatVoxelLocations( QString fileName, QString voxelPosVariable, Packet *packet){
 
     if( !voxelPosVariable.length())
         return;
 
-    //here we assume that the file contains
-    //2 consecutive lines. in the first line
-    //there is position information (x y z)
-    //and in the following line there is the
-    //intensity value of that voxel.
-    //it is just a parser to train the rendering.
+    mat_t    *matfp;
+    matvar_t *matvar;
 
-    QString voxelLocationFile = directory;
+    matfp = Mat_Open( fileName.toStdString().c_str(), MAT_ACC_RDONLY);
 
-    MATFile *mFile = NULL;
-    mFile = matOpen(voxelLocationFile.toStdString().c_str(),"r");
-    if(mFile == NULL)
-        cout << "error opening MAT file: " << endl;
+    if ( NULL == matfp) {
+        fprintf(stderr,"Error opening MAT file %s\n", fileName.toStdString().c_str());
+        return;
+    }
 
-    const mxArray *pa = NULL;
-    pa = matGetVariable(mFile, voxelPosVariable.toStdString().c_str());
+    matvar = Mat_VarReadInfo( matfp, voxelPosVariable.toStdString().c_str());
 
-    if (pa == NULL)
-        printf("Error reading existing matrix %s\n");
+    if ( NULL != matvar ){
 
-    const size_t *dims = mxGetDimensions_730( pa);
-    double *mxData = (double*)mxGetData( pa);
-    packet->vXYZ.clear();
-    //can previously resize here!!!
+        Mat_VarReadDataAll( matfp, matvar);
+        std::cout << "voxel locs " << matvar->dims[0] << " " << matvar->dims[1] << std::endl;
 
-    for( int row = 0; row < (int)dims[0]; row++)
-        for( int column = 0; column < (int)dims[1]; column += 3)
-            packet->vXYZ.push_back( libsimple::Packet::Point3D( mxData[dims[0] * column + row],
-                                                                mxData[dims[0] * (column+1) + row],
-                                                                mxData[dims[0] * (column+2) + row]));
+        double *data = (double*)matvar->data;
+
+        packet->vXYZ.clear();
+        packet->vXYZ.resize(matvar->dims[0]);
+        for( int row = 0; row < (int)matvar->dims[0]; row++)
+                packet->vXYZ[row] = libsimple::Packet::Point3D( data[row],
+                                                                data[matvar->dims[0] + row],
+                                                                data[matvar->dims[0] * 2 + row]);
+
+        std::cout << "voxel locs2" << std::endl;
+
+        Mat_VarFree( matvar);
+    }
+
+    Mat_Close(matfp);
 }
 
-void PacketFileReader::readMatVoxelIntensities( QString directory, QString voxelIntensitiesVariable, Packet *packet){
+void PacketFileReader::readMatVoxelIntensities( QString fileName, QString voxelIntensitiesVariable, Packet *packet){
+
+    std::cout << "voxel inten funcs" << std::endl;
 
     if( !voxelIntensitiesVariable.length())
         return;
 
-    QString voxelIntensityFile = directory;
+    mat_t    *matfp;
+    matvar_t *matvar;
 
-    MATFile *mFile = NULL;
-    mFile = matOpen(voxelIntensityFile.toStdString().c_str(),"r");
-    if(mFile == NULL)
-        cout << "error opening MAT file: " << endl;
+    matfp = Mat_Open( fileName.toStdString().c_str(), MAT_ACC_RDONLY);
 
-    const mxArray *pa = NULL;
-    pa = matGetVariable(mFile, voxelIntensitiesVariable.toStdString().c_str());
-
-    if (pa == NULL)
-        printf("Error reading existing matrix %s\n");
-
-    const size_t *dims = mxGetDimensions_730( pa);
-    double *mxData = (double*)mxGetData( pa);
-    packet->intensities.clear();
-
-    for( int row = 0; row < (int)dims[0]; row++){
-
-        packet->intensities.push_back( vector<float>());
-
-        for( int column = 0; column < (int)dims[1]; column++)
-            packet->intensities.at(packet->intensities.size()-1).push_back(mxData[dims[0] * column + row]);
+    if ( NULL == matfp) {
+        fprintf(stderr,"Error opening MAT file %s\n", fileName.toStdString().c_str());
+        return;
     }
+
+    matvar = Mat_VarReadInfo( matfp, voxelIntensitiesVariable.toStdString().c_str());
+
+    if ( NULL != matvar ){
+
+        Mat_VarReadDataAll( matfp, matvar);
+        std::cout << "voxel inten" << std::endl;
+
+        double *data = (double*)matvar->data;
+
+        packet->intensities.clear();
+        packet->intensities.resize(matvar->dims[0]);
+        for( int row = 0; row < (int)matvar->dims[0]; row++){
+            packet->intensities[row] = vector<float>();
+            packet->intensities[row].resize(matvar->dims[1]);
+            for( int column = 0; column < (int)matvar->dims[1]; column++)
+                packet->intensities[row][column] = data[matvar->dims[0] * column + row];
+        }
+
+        Mat_VarFree( matvar);
+    }
+
+    Mat_Close(matfp);
 }
 
-void PacketFileReader::readMatEdgePairs( QString directory, QString edgePairsVariable, Packet *packet){
+void PacketFileReader::readMatEdgePairs( QString fileName, QString edgePairsVariable, Packet *packet){
 
     if( !edgePairsVariable.length())
         return;
 
-    QString edgePairsFile = directory;
+    std::cout << "asdasd" << std::endl;
 
-    MATFile *mFile = NULL;
-    mFile = matOpen(edgePairsFile.toStdString().c_str(),"r");
-    if(mFile == NULL)
-        cout << "error opening MAT file: " << endl;
+    return;
 
-    const mxArray *pa = NULL;
-    pa = matGetVariable(mFile, edgePairsVariable.toStdString().c_str());
+//    MATFile *mFile = NULL;
+//    mFile = matOpen(edgePairsFile.toStdString().c_str(),"r");
+//    if(mFile == NULL)
+//        cout << "error opening MAT file: " << endl;
 
-    if (pa == NULL)
-        printf("Error reading existing matrix %s\n");
-    size_t rowSize = mxGetM(pa);
-    packet->edges.clear();
+//    const mxArray *pa = NULL;
+//    pa = matGetVariable(mFile, edgePairsVariable.toStdString().c_str());
 
-    for(size_t i=0; i < rowSize; i++){
-         mxArray *cellArray = NULL;
-         cellArray = mxGetCell_730(pa,i);
-         size_t cellSize = mxGetN(cellArray);
-         double *mxData = (double*)mxGetData( cellArray);
-         for(int k = 0; k < (int)cellSize; k++)
-            packet->edges.push_back( libsimple::Packet::Point2D((float)i, (float)mxData[k]-1));
-    }
+//    if (pa == NULL)
+//        printf("Error reading existing matrix %s\n");
+//    size_t rowSize = mxGetM(pa);
+//    packet->edges.clear();
+
+//    for(size_t i=0; i < rowSize; i++){
+//         mxArray *cellArray = NULL;
+//         cellArray = mxGetCell_730(pa,i);
+//         size_t cellSize = mxGetN(cellArray);
+//         double *mxData = (double*)mxGetData( cellArray);
+//         for(int k = 0; k < (int)cellSize; k++)
+//            packet->edges.push_back( libsimple::Packet::Point2D((float)i, (float)mxData[k]-1));
+//    }
+
+//    mat_t    *matfp;
+//    matvar_t *matvar;
+
+//    matfp = Mat_Open( fileName.toStdString().c_str(), MAT_ACC_RDONLY);
+
+//    if ( NULL == matfp) {
+//        fprintf(stderr,"Error opening MAT file %s\n", fileName.toStdString().c_str());
+//        return;
+//    }
+
+//    //matvar = Mat_VarReadInfo( matfp, edgePairsVariable.toStdString().c_str());
+
+//    if ( NULL != matvar ){
+
+//        //Mat_VarReadDataAll( matfp, matvar);
+////        Mat_VarRead
+//        //std::cout << matvar->dims[0] << " " << matvar->dims[1] << std::endl;
+//    }
+
+//    Mat_Close(matfp);
 }
 
-void PacketFileReader::readMatEdgePairIntensities( QString directory, QString edgePairsIntensitiesVariable, Packet *packet){
+void PacketFileReader::readMatEdgePairIntensities( QString fileName, QString edgePairsIntensitiesVariable, Packet *packet){
 
     if( !edgePairsIntensitiesVariable.length())
         return;
 
-    QString edgePairIntensitiesFile = directory;
+//    MATFile *mFile = NULL;
+//    mFile = matOpen(edgePairIntensitiesFile.toStdString().c_str(),"r");
+//    if(mFile == NULL)
+//        cout << "error opening MAT file: " << endl;
 
-    MATFile *mFile = NULL;
-    mFile = matOpen(edgePairIntensitiesFile.toStdString().c_str(),"r");
-    if(mFile == NULL)
-        cout << "error opening MAT file: " << endl;
+//    const mxArray *pa = NULL;
+//    pa = matGetVariable(mFile, edgePairsIntensitiesVariable.toStdString().c_str());
 
-    const mxArray *pa = NULL;
-    pa = matGetVariable(mFile, edgePairsIntensitiesVariable.toStdString().c_str());
+//    if (pa == NULL)
+//        printf("Error reading existing matrix %s\n");
 
-    if (pa == NULL)
-        printf("Error reading existing matrix %s\n");
+//    const size_t *dims = mxGetDimensions_730( pa);
+//    double *mxData = (double*)mxGetData( pa);
+//    packet->edgeIntensities.clear();
 
-    const size_t *dims = mxGetDimensions_730( pa);
-    double *mxData = (double*)mxGetData( pa);
-    packet->edgeIntensities.clear();
+//    for( int row = 0; row < (int)dims[0]; row++){
 
-    for( int row = 0; row < (int)dims[0]; row++){
-
-        packet->edgeIntensities.push_back( vector<float>());
-        for( int column = 0; column < (int)dims[1]; column++)
-            packet->edgeIntensities.at(packet->edgeIntensities.size()-1).push_back(mxData[dims[0] * column + row]);
-    }
+//        packet->edgeIntensities.push_back( vector<float>());
+//        for( int column = 0; column < (int)dims[1]; column++)
+//            packet->edgeIntensities.at(packet->edgeIntensities.size()-1).push_back(mxData[dims[0] * column + row]);
+//    }
 }
 
 void PacketFileReader::readVoxelLocations( QString directory, Packet *packet){
