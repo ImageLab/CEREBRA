@@ -59,23 +59,21 @@ void PacketFileReader::readMatVoxelLocations( QString fileName, QString voxelPos
         return;
     }
 
-    matvar = Mat_VarReadInfo( matfp, voxelPosVariable.toStdString().c_str());
-
+    matvar = Mat_VarRead( matfp, voxelPosVariable.toStdString().c_str());
     if ( NULL != matvar ){
 
         Mat_VarReadDataAll( matfp, matvar);
-        std::cout << "voxel locs " << matvar->dims[0] << " " << matvar->dims[1] << std::endl;
 
         double *data = (double*)matvar->data;
 
         packet->vXYZ.clear();
+
         packet->vXYZ.resize(matvar->dims[0]);
+
         for( int row = 0; row < (int)matvar->dims[0]; row++)
                 packet->vXYZ[row] = libsimple::Packet::Point3D( data[row],
                                                                 data[matvar->dims[0] + row],
                                                                 data[matvar->dims[0] * 2 + row]);
-
-        std::cout << "voxel locs2" << std::endl;
 
         Mat_VarFree( matvar);
     }

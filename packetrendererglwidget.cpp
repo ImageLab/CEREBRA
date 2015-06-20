@@ -98,7 +98,9 @@ void PacketRendererGLWidget::initializeShader(){
                                     "float nextIntensity = texelFetch(u_tbo_tex, int(vIndex + mod(textureOffset+1, timeLength))).r;\n"
                                     "float intensity = curIntensity + interpolationOffset * ((nextIntensity - curIntensity)/(interpolationLevel));\n"
                                     "float r = (intensity-minValue)/(maxValue - minValue);\n"
-                                    "if(intensity <= maxThreshold && intensity >= minThreshold)\n"
+                                    "if( timeLength == 0)\n"
+                                        "color = vec4(1,1,1,1);\n"
+                                    "else if(intensity <= maxThreshold && intensity >= minThreshold)\n"
                                         "if( !drawsEdges && shouldDrawTransparent)\n"
                                             "color = vec4(0.83, 0.83, 0.83, 0.05);\n"
                                         "else\n"
@@ -147,6 +149,7 @@ void PacketRendererGLWidget::setPacket(Packet *packet, QString workingDirectory)
     //if no intensity available, then create fake one with all intensities = 1;
     if( packetToRender->intensities.size() < 1){
 
+        std::cout << "fake intensities" << std::endl;
         packetToRender->intensities.clear();
         packetToRender->intensities.resize( (size_t)packetToRender->vXYZ.size());
 
@@ -154,17 +157,21 @@ void PacketRendererGLWidget::setPacket(Packet *packet, QString workingDirectory)
             packetToRender->intensities[voxel].push_back((float)1.0);
     }
 
+
     createVoxelTexture();
 
     textureOffset = 0;
     interpolationOffset = 0;
+
     updateAttributeArrays();
     updateMatrices();
+
+    GLint timeLength = packetToRender->intensities[0].size();
 
     shaderProgram.setUniformValue( "textureOffset", textureOffset);
     shaderProgram.setUniformValue( "interpolationOffset", interpolationOffset);
     shaderProgram.setUniformValue( "interpolationLevel", INTERPOLATION_LEVEL);
-    shaderProgram.setUniformValue( "timeLength", packetToRender->intensities[0].size());
+    shaderProgram.setUniformValue( "timeLength", timeLength);
 
     if( shouldAnimate)
         aTimer->start(UPDATE_FREQ_IN_MS); //updating per this amount of milliseconds

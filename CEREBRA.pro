@@ -28,5 +28,5 @@ FORMS    += mainwindow.ui
 INCLUDEPATH += $$PWD/include
 DEPENDPATH += $$PWD/include
 
-LIBS += -L"$$_PRO_FILE_PWD_/lib" -llibsimple
-LIBS += -L"$$_PRO_FILE_PWD_/lib" -llibmatio
+LIBS += -L"$$_PRO_FILE_PWD_/lib/x64" -llibsimple
+LIBS += -L"$$_PRO_FILE_PWD_/lib/x64" -llibmatio
