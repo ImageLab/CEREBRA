@@ -151,8 +151,12 @@ void PacketFileReader::readMatEdgePairs( QString fileName, QString edgePairsVari
             matvar_t *cell = Mat_VarGetCell(matvar, curCell);
             double *data = (double *)(cell->data);
 
-            for( int curValue = 0; curValue < cell->dims[0]; curValue++)
-                packet->edges.push_back( std::pair<int, int>(curValue, (int)(data[curValue]-1)));
+            for( int curValue = 0; curValue < cell->dims[0]; curValue++){
+                std::cout << data[curValue] << " ";
+                packet->edges.push_back( std::pair<int, int>(curCell, (int)(data[curValue]-1)));
+            }
+
+            std::cout << std::endl;
         }
 
         Mat_VarFree( matvar);

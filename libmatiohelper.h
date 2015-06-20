@@ -12,9 +12,9 @@ public:
     static int getVariables( const char *fName, std::vector< char *> &variables){
 
         mat_t    *matfp;
-        matvar_t *matvar;
 
         variables.clear();
+        std::vector< matvar_t *> matVariables;
 
         matfp = Mat_Open( fName, MAT_ACC_RDONLY);
 
@@ -24,11 +24,15 @@ public:
             return EXIT_FAILURE;
         }
 
+        matvar_t *matvar;
         while ( NULL != (matvar = Mat_VarReadNext( matfp))){
 
             variables.push_back( matvar->name);
-            Mat_VarFree( matvar);
+            matVariables.push_back( matvar);
         }
+
+        for( int var = 0; var < matVariables.size(); var++)
+            Mat_VarFree( matVariables.at(var));
 
         Mat_Close( matfp);
 
