@@ -8,8 +8,6 @@
 #include <iostream>
 #include <cmath>
 
-using namespace libsimple;
-
 class PacketFileReader
 {
 public:

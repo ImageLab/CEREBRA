@@ -7,7 +7,7 @@
 #include <QGLShaderProgram>
 #include <QGLFunctions>
 #include <QVector>
-//#include "brain_cover.h"
+#include <iostream>
 #include "Packet.h"
 #include <QOpenGLFunctions_3_3_Core>
 
@@ -19,7 +19,6 @@
  * using this widget should not bother with OpenGL work.
  */
 using namespace std;
-using namespace libsimple;
 
 class PacketRendererGLWidget : public QGLWidget, protected QOpenGLFunctions_3_3_Core
 {
@@ -86,7 +85,7 @@ public:
      * @brief setPacket updates the packet to be rendered
      * @param packet is the new packet which will be replaced with the current one, if any.
      */
-    void setPacket( libsimple::Packet *packet, QString workingDirectory = "");
+    void setPacket( Packet *packet, QString workingDirectory = "");
 
     /**
      * @brief setWorkingDirectory makes PacketRendererGLWidget to

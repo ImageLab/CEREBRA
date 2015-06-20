@@ -24,8 +24,13 @@ public:
             return EXIT_FAILURE;
         }
 
-        while ( NULL != (matvar = Mat_VarReadNext(matfp)))
+        while ( NULL != (matvar = Mat_VarReadNext( matfp))){
+
             variables.push_back( matvar->name);
+            Mat_VarFree( matvar);
+        }
+
+        Mat_Close( matfp);
 
         return EXIT_SUCCESS;
     }

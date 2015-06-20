@@ -59,21 +59,22 @@ void PacketFileReader::readMatVoxelLocations( QString fileName, QString voxelPos
         return;
     }
 
-    matvar = Mat_VarRead( matfp, voxelPosVariable.toStdString().c_str());
+    matvar = Mat_VarReadInfo( matfp, voxelPosVariable.toStdString().c_str());
     if ( NULL != matvar ){
 
         Mat_VarReadDataAll( matfp, matvar);
 
         double *data = (double*)matvar->data;
 
-        packet->vXYZ.clear();
+        packet->voxel3DPositions.clear();
+        packet->voxel3DPositions.resize( matvar->dims[0]);
 
-        packet->vXYZ.resize(matvar->dims[0]);
+        for( int row = 0; row < (int)matvar->dims[0]; row++){
 
-        for( int row = 0; row < (int)matvar->dims[0]; row++)
-                packet->vXYZ[row] = libsimple::Packet::Point3D( data[row],
-                                                                data[matvar->dims[0] + row],
-                                                                data[matvar->dims[0] * 2 + row]);
+            packet->voxel3DPositions[row].first = data[row];
+            packet->voxel3DPositions[row].second.first = data[matvar->dims[0] + row];
+            packet->voxel3DPositions[row].second.second = data[matvar->dims[0] * 2 + row];
+        }
 
         Mat_VarFree( matvar);
     }
@@ -82,8 +83,6 @@ void PacketFileReader::readMatVoxelLocations( QString fileName, QString voxelPos
 }
 
 void PacketFileReader::readMatVoxelIntensities( QString fileName, QString voxelIntensitiesVariable, Packet *packet){
-
-    std::cout << "voxel inten funcs" << std::endl;
 
     if( !voxelIntensitiesVariable.length())
         return;
@@ -103,17 +102,18 @@ void PacketFileReader::readMatVoxelIntensities( QString fileName, QString voxelI
     if ( NULL != matvar ){
 
         Mat_VarReadDataAll( matfp, matvar);
-        std::cout << "voxel inten" << std::endl;
 
         double *data = (double*)matvar->data;
 
         packet->intensities.clear();
-        packet->intensities.resize(matvar->dims[0]);
+        packet->intensities.resize( matvar->dims[0]);
         for( int row = 0; row < (int)matvar->dims[0]; row++){
-            packet->intensities[row] = vector<float>();
-            packet->intensities[row].resize(matvar->dims[1]);
+
+            packet->intensities[row] = std::vector<float>();
+            packet->intensities[row].resize( matvar->dims[1]);
+
             for( int column = 0; column < (int)matvar->dims[1]; column++)
-                packet->intensities[row][column] = data[matvar->dims[0] * column + row];
+                packet->intensities[row][column] = data[ matvar->dims[0] * column + row];
         }
 
         Mat_VarFree( matvar);
@@ -127,52 +127,38 @@ void PacketFileReader::readMatEdgePairs( QString fileName, QString edgePairsVari
     if( !edgePairsVariable.length())
         return;
 
-    std::cout << "asdasd" << std::endl;
+    mat_t    *matfp;
+    matvar_t *matvar;
 
-    return;
+    matfp = Mat_Open( fileName.toStdString().c_str(), MAT_ACC_RDONLY);
 
-//    MATFile *mFile = NULL;
-//    mFile = matOpen(edgePairsFile.toStdString().c_str(),"r");
-//    if(mFile == NULL)
-//        cout << "error opening MAT file: " << endl;
+    if ( NULL == matfp) {
 
-//    const mxArray *pa = NULL;
-//    pa = matGetVariable(mFile, edgePairsVariable.toStdString().c_str());
+        fprintf(stderr,"Error opening MAT file %s\n", fileName.toStdString().c_str());
+        return;
+    }
 
-//    if (pa == NULL)
-//        printf("Error reading existing matrix %s\n");
-//    size_t rowSize = mxGetM(pa);
-//    packet->edges.clear();
+    matvar = Mat_VarReadInfo( matfp, edgePairsVariable.toStdString().c_str());
+    packet->edges.clear();
 
-//    for(size_t i=0; i < rowSize; i++){
-//         mxArray *cellArray = NULL;
-//         cellArray = mxGetCell_730(pa,i);
-//         size_t cellSize = mxGetN(cellArray);
-//         double *mxData = (double*)mxGetData( cellArray);
-//         for(int k = 0; k < (int)cellSize; k++)
-//            packet->edges.push_back( libsimple::Packet::Point2D((float)i, (float)mxData[k]-1));
-//    }
+    if ( NULL != matvar ){
 
-//    mat_t    *matfp;
-//    matvar_t *matvar;
+        Mat_VarReadDataAll( matfp, matvar);
+        packet->edges.clear();
 
-//    matfp = Mat_Open( fileName.toStdString().c_str(), MAT_ACC_RDONLY);
+        for( int curCell = 0; curCell < matvar->dims[0]; curCell++){
 
-//    if ( NULL == matfp) {
-//        fprintf(stderr,"Error opening MAT file %s\n", fileName.toStdString().c_str());
-//        return;
-//    }
+            matvar_t *cell = Mat_VarGetCell(matvar, curCell);
+            double *data = (double *)(cell->data);
 
-//    //matvar = Mat_VarReadInfo( matfp, edgePairsVariable.toStdString().c_str());
+            for( int curValue = 0; curValue < cell->dims[0]; curValue++)
+                packet->edges.push_back( std::pair<int, int>(curValue, (int)(data[curValue]-1)));
+        }
 
-//    if ( NULL != matvar ){
+        Mat_VarFree( matvar);
+    }
 
-//        //Mat_VarReadDataAll( matfp, matvar);
-////        Mat_VarRead
-//        //std::cout << matvar->dims[0] << " " << matvar->dims[1] << std::endl;
-//    }
-
-//    Mat_Close(matfp);
+    Mat_Close( matfp);
 }
 
 void PacketFileReader::readMatEdgePairIntensities( QString fileName, QString edgePairsIntensitiesVariable, Packet *packet){
@@ -180,37 +166,44 @@ void PacketFileReader::readMatEdgePairIntensities( QString fileName, QString edg
     if( !edgePairsIntensitiesVariable.length())
         return;
 
-//    MATFile *mFile = NULL;
-//    mFile = matOpen(edgePairIntensitiesFile.toStdString().c_str(),"r");
-//    if(mFile == NULL)
-//        cout << "error opening MAT file: " << endl;
+    mat_t    *matfp;
+    matvar_t *matvar;
 
-//    const mxArray *pa = NULL;
-//    pa = matGetVariable(mFile, edgePairsIntensitiesVariable.toStdString().c_str());
+    matfp = Mat_Open( fileName.toStdString().c_str(), MAT_ACC_RDONLY);
 
-//    if (pa == NULL)
-//        printf("Error reading existing matrix %s\n");
+    if ( NULL == matfp) {
+        fprintf(stderr,"Error opening MAT file %s\n", fileName.toStdString().c_str());
+        return;
+    }
 
-//    const size_t *dims = mxGetDimensions_730( pa);
-//    double *mxData = (double*)mxGetData( pa);
-//    packet->edgeIntensities.clear();
+    matvar = Mat_VarReadInfo( matfp, edgePairsIntensitiesVariable.toStdString().c_str());
 
-//    for( int row = 0; row < (int)dims[0]; row++){
+    if ( NULL != matvar ){
 
-//        packet->edgeIntensities.push_back( vector<float>());
-//        for( int column = 0; column < (int)dims[1]; column++)
-//            packet->edgeIntensities.at(packet->edgeIntensities.size()-1).push_back(mxData[dims[0] * column + row]);
-//    }
+        Mat_VarReadDataAll( matfp, matvar);
+
+        double *data = (double*)matvar->data;
+
+        packet->edgeIntensities.clear();
+        packet->edgeIntensities.resize( matvar->dims[0]);
+
+        for( int row = 0; row < packet->edgeIntensities.size(); row++){
+
+            packet->edgeIntensities[row] = std::vector<float>();
+            packet->edgeIntensities[row].resize( matvar->dims[1]);
+
+            for( int column = 0; column < (int)matvar->dims[1]; column++)
+                packet->edgeIntensities[row][column] = data[matvar->dims[0] * column + row];
+        }
+
+        Mat_VarFree( matvar);
+    }
+
+    Mat_Close(matfp);
 }
 
 void PacketFileReader::readVoxelLocations( QString directory, Packet *packet){
 
-    //here we assume that the file contains
-    //2 consecutive lines. in the first line
-    //there is position information (x y z)
-    //and in the following line there is the
-    //intensity value of that voxel.
-    //it is just a parser to train the rendering.
     QFile voxelLocationFile(directory + QDir::separator() + "voxels.txt");
 
     if(!voxelLocationFile.open(QIODevice::ReadOnly))
@@ -219,7 +212,7 @@ void PacketFileReader::readVoxelLocations( QString directory, Packet *packet){
         return;
     }
 
-    packet->vXYZ.clear();
+    packet->voxel3DPositions.clear();
     QTextStream instream(&voxelLocationFile);
     QString pos;
 
@@ -227,7 +220,9 @@ void PacketFileReader::readVoxelLocations( QString directory, Packet *packet){
 
         QRegExp rx("[ ]");
         QStringList list = pos.split(rx, QString::SkipEmptyParts);
-        packet->vXYZ.push_back( libsimple::Packet::Point3D(list.at(0).toFloat(), list.at(1).toFloat(), list.at(2).toFloat()));
+        packet->voxel3DPositions.push_back( std::pair< float, std::pair< float, float> > (list.at( 0).toFloat(),
+                                                                                          std::pair<float, float>(list.at( 1).toFloat(),
+                                                                                                                  list.at( 2).toFloat())));
     }
 
     voxelLocationFile.close();
@@ -252,7 +247,7 @@ void PacketFileReader::readVoxelIntensities( QString directory, Packet *packet){
 
         QRegExp rx("[,]");
         QStringList list = intensitiesOfVoxel.split(rx, QString::SkipEmptyParts);
-        packet->intensities.push_back( vector<float>());
+        packet->intensities.push_back( std::vector<float>());
 
         for( int i = 0; i < list.length(); i++)
             packet->intensities.at(packet->intensities.size()-1).push_back(list.at(i).toFloat());
@@ -279,7 +274,7 @@ void PacketFileReader::readEdgePairs( QString directory, Packet *packet){
         QRegExp rx("[ ]");
         QStringList list = edgePairLine.split(rx, QString::SkipEmptyParts);
         for(int i=0; i< list.length();i++)
-            packet->edges.push_back( libsimple::Packet::Point2D((float)count, (float)list[i].toInt()-1));
+            packet->edges.push_back( std::pair<int, int> (count, (int)list[i].toInt()-1));
 
         count++;
     }
@@ -306,7 +301,7 @@ void PacketFileReader::readEdgePairIntensities( QString directory, Packet *packe
         QRegExp rx("[,]");
         QStringList list = intensityOfPair.split(rx, QString::SkipEmptyParts);
 
-        packet->edgeIntensities.push_back( vector<float>());
+        packet->edgeIntensities.push_back( std::vector<float>());
         for( int i = 0; i < list.length(); i++)
             packet->edgeIntensities.at(packet->edgeIntensities.size()-1).push_back(list.at(i).toFloat());
     }

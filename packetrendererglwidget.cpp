@@ -140,7 +140,7 @@ void PacketRendererGLWidget::setPacket(Packet *packet, QString workingDirectory)
     if( aTimer->isActive())
         aTimer->stop();
 
-    if( packet->vXYZ.size() < 1)
+    if( packet->voxel3DPositions.size() < 1)
         return;
 
     packetToRender = packet;
@@ -149,11 +149,10 @@ void PacketRendererGLWidget::setPacket(Packet *packet, QString workingDirectory)
     //if no intensity available, then create fake one with all intensities = 1;
     if( packetToRender->intensities.size() < 1){
 
-        std::cout << "fake intensities" << std::endl;
         packetToRender->intensities.clear();
-        packetToRender->intensities.resize( (size_t)packetToRender->vXYZ.size());
+        packetToRender->intensities.resize( (size_t)packetToRender->voxel3DPositions.size());
 
-        for( int voxel = 0; voxel < (int)packetToRender->vXYZ.size(); voxel++)
+        for( int voxel = 0; voxel < (int)packetToRender->voxel3DPositions.size(); voxel++)
             packetToRender->intensities[voxel].push_back((float)1.0);
     }
 
@@ -310,15 +309,15 @@ void PacketRendererGLWidget::updateAttributeArrays(){
     voxelVertices.clear();
     voxelTextureIndex.clear();
     voxelIndices.clear();
-    voxelIndices.resize( (int)packetToRender->vXYZ.size() * NUM_OF_CON_POINTS_FOR_EACH_MESH);
+    voxelIndices.resize( (int)packetToRender->voxel3DPositions.size() * NUM_OF_CON_POINTS_FOR_EACH_MESH);
     int voxelIndexCount = 0;
-    for( int currentVoxel = 0; currentVoxel < (int)packetToRender->vXYZ.size(); currentVoxel++){
+    for( int currentVoxel = 0; currentVoxel < (int)packetToRender->voxel3DPositions.size(); currentVoxel++){
 
         int curVoxelIndexBegin = NUM_OF_VERTICES * currentVoxel;
         int curVoxelTextureBegin = currentVoxel*packetToRender->intensities[currentVoxel].size();
-        float x = packetToRender->vXYZ[currentVoxel].x;
-        float y = packetToRender->vXYZ[currentVoxel].y;
-        float z = packetToRender->vXYZ[currentVoxel].z;
+        float x = packetToRender->voxel3DPositions[currentVoxel].first;
+        float y = packetToRender->voxel3DPositions[currentVoxel].second.first;
+        float z = packetToRender->voxel3DPositions[currentVoxel].second.second;
 
         voxelVertices << QVector4D(x-0.35, y-0.35, z+0.35, 1.0) //0
                       << QVector4D(x+0.35, y-0.35, z+0.35, 1.0) //1
@@ -359,12 +358,19 @@ void PacketRendererGLWidget::updateAttributeArrays(){
     edgeVertices.clear();
     edgeTextureIndex.clear();
 
-    int edgeTextureBegin = (int)packetToRender->vXYZ.size() * packetToRender->intensities[0].size();
+    int edgeTextureBegin = (int)packetToRender->voxel3DPositions.size() * packetToRender->intensities[0].size();
+
     for( int pair = 0; pair < (int)packetToRender->edges.size(); pair++){
 
         int curEdgeTextureBegin = edgeTextureBegin + pair*packetToRender->edgeIntensities[pair].size();
-        QVector3D origin(packetToRender->vXYZ[packetToRender->edges[pair].x].x, packetToRender->vXYZ[packetToRender->edges[pair].x].y, packetToRender->vXYZ[packetToRender->edges[pair].x].z);
-        QVector3D destination(packetToRender->vXYZ[packetToRender->edges[pair].y].x, packetToRender->vXYZ[packetToRender->edges[pair].y].y, packetToRender->vXYZ[packetToRender->edges[pair].y].z);
+
+        QVector3D origin(packetToRender->voxel3DPositions[packetToRender->edges[pair].first].first,
+                packetToRender->voxel3DPositions[packetToRender->edges[pair].first].second.first,
+                packetToRender->voxel3DPositions[packetToRender->edges[pair].first].second.second);
+
+        QVector3D destination(packetToRender->voxel3DPositions[packetToRender->edges[pair].second].first,
+                packetToRender->voxel3DPositions[packetToRender->edges[pair].second].second.first,
+                packetToRender->voxel3DPositions[packetToRender->edges[pair].second].second.second);
 
         edgeVertices << QVector4D( origin, 1.0) //0
                      << QVector4D( destination, 1.0); //1
@@ -405,6 +411,8 @@ void PacketRendererGLWidget::createVoxelTexture(){
     glBindTexture( GL_TEXTURE_BUFFER, voxelTBO);
     glTexBuffer( GL_TEXTURE_BUFFER, GL_R32F, voxelBO);
     shaderProgram.setUniformValue("u_tbo_tex", 0);
+
+    delete[] voxelBOData;
 }
 
 void PacketRendererGLWidget::animate(){
