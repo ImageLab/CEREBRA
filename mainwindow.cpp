@@ -1,7 +1,5 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <QFileDialog>
-#include <QMessageBox>
 #include <iostream>
 #include <cmath>
 #include "libmatiohelper.h"
@@ -20,7 +18,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->rangeSlider->setEnabled(false);
     ui->edgeRangeSlider->setEnabled(false);
-
+    ui->matlabTab->setEnabled( false);
     ui->thresholdSlider->setRange(0, 100);
     ui->edgeThresholdSlider->setRange(0, 100);
     ui->rangeSlider->setRange(0, 100);
@@ -37,6 +35,7 @@ MainWindow::MainWindow(QWidget *parent) :
     setRange(false);
 
     displayArcsStateChanged(0);
+    displayLabelsStateChanged(0);
 }
 
 MainWindow::~MainWindow()
@@ -45,6 +44,8 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::loadButtonClicked(){
+
+    ui->matlabTab->setEnabled( false);
 
     QString directoryName = QFileDialog::getExistingDirectory();
 
@@ -57,11 +58,11 @@ void MainWindow::loadButtonClicked(){
 void MainWindow::loadMatFileButtonClicked(){
 
     fileName = QFileDialog::getOpenFileName(this, tr("Open File"),"",tr("Files (*.mat*)"));
+
     if(fileName.length()== 0)
         return;
 
-    QDir d = QFileInfo(fileName).absoluteDir();
-    directory = d.absolutePath();
+    directory = QFileInfo(fileName).absoluteDir().absolutePath();
 
     std::vector< char *> variables;
 
@@ -76,23 +77,23 @@ void MainWindow::loadMatFileButtonClicked(){
 
     ui->displayButton->setEnabled(true);
 
-    ui->comboBox->clear();
-    ui->comboBox_2->clear();
-    ui->comboBox_3->clear();
-    ui->comboBox_4->clear();
-
-    ui->comboBox->addItem("");
-    ui->comboBox_2->addItem("");
-    ui->comboBox_3->addItem("");
-    ui->comboBox_4->addItem("");
+    ui->voxelPositionComboBox->clear();
+    ui->voxelIntensitiesComboBox->clear();
+    ui->edgePairsComboBox->clear();
+    ui->edgeIntensitiesComboBox->clear();
 
     for( int curVar = 0; curVar < (int)variables.size(); curVar++){
 
-        ui->comboBox->addItem(QString(variables.at(curVar)));
-        ui->comboBox_2->addItem(QString(variables.at(curVar)));
-        ui->comboBox_3->addItem(QString(variables.at(curVar)));
-        ui->comboBox_4->addItem(QString(variables.at(curVar)));
+        ui->voxelPositionComboBox->addItem(QString(variables.at(curVar)));
+        ui->voxelIntensitiesComboBox->addItem(QString(variables.at(curVar)));
+        ui->edgePairsComboBox->addItem(QString(variables.at(curVar)));
+        ui->edgeIntensitiesComboBox->addItem(QString(variables.at(curVar)));
     }
+
+    ui->voxelPositionComboBox->addItem("");
+    ui->voxelIntensitiesComboBox->addItem("");
+    ui->edgePairsComboBox->addItem("");
+    ui->edgeIntensitiesComboBox->addItem("");
 
     ui->matlabTab->setEnabled(true);
 }
@@ -101,10 +102,10 @@ void MainWindow::displayButtonClicked()
 {
     if( !fileName.isNull())
         ui->packetRendererGLWidget->setPacket(reader.readPacketFromMatlab( fileName,
-                                                                           ui->comboBox->currentText(),
-                                                                           ui->comboBox_2->currentText(),
-                                                                           ui->comboBox_3->currentText(),
-                                                                           ui->comboBox_4->currentText()), directory);
+                                                                           ui->voxelPositionComboBox->currentText(),
+                                                                           ui->voxelIntensitiesComboBox->currentText(),
+                                                                           ui->edgePairsComboBox->currentText(),
+                                                                           ui->edgeIntensitiesComboBox->currentText()), directory);
 }
 
 void MainWindow::minValueTextEdited(QString text){
@@ -295,5 +296,116 @@ void MainWindow::displayArcsStateChanged( int state){
         else
             ui->edgeRangeSlider->setEnabled(false);
         ui->packetRendererGLWidget->shouldDisplayArcs( true);
+    }
+}
+
+void MainWindow::loadClusteringMATFileButtonClicked(){
+
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"),"",tr("Files (*.mat*)"));
+    if( fileName.length()== 0)
+        return;
+
+    clusteringFileName = fileName;
+
+    std::vector< char *> variables;
+
+    if( LibMatioHelper::getVariables( fileName.toStdString().c_str(), variables) == EXIT_FAILURE){
+
+        QMessageBox::warning(this, tr("Error"),
+                                   tr("There is an error while openning the file.\n"),
+                                   QMessageBox::Ok);
+
+        return;
+    }
+
+    ui->clusterVariablesComboBox->clear();
+
+    for( int curVar = 0; curVar < variables.size(); curVar++)
+        ui->clusterVariablesComboBox->addItem( variables.at(curVar));
+}
+
+void MainWindow::updateClusterLabelText(){
+
+    QString chosenLabelsString = "";
+    for( int curSelectedLabel = 0; curSelectedLabel < ui->removeClusterLabelComboBox->count(); curSelectedLabel++){
+        QString label = ui->removeClusterLabelComboBox->itemText(curSelectedLabel);
+        int r,g,b;
+        ui->packetRendererGLWidget->getRGBOfALabel( label.toInt(), r,g,b);
+        chosenLabelsString = chosenLabelsString + " <p style=\"color:rgb(" + QString::number(r) + "," + QString::number(g) + "," + QString::number(b) + ")\">" + label + "</p>";
+    }
+
+    ui->chosenLabelsWithColorsLabel->setText( chosenLabelsString);
+}
+
+void MainWindow::addButtonClicked(){
+
+    int label = ui->clusterLabelComboBox->currentText().toInt();
+    ui->packetRendererGLWidget->labelEnabled( label);
+    ui->removeClusterLabelComboBox->addItem( QString::number(label));
+    ui->clusterLabelComboBox->removeItem( ui->clusterLabelComboBox->currentIndex());
+
+    int r,g,b;
+    ui->packetRendererGLWidget->getRGBOfALabel( label, r, g, b);
+
+    updateClusterLabelText();
+}
+
+void MainWindow::removeButtonClicked(){
+
+    QString label = ui->removeClusterLabelComboBox->currentText();
+    ui->packetRendererGLWidget->labelDisabled( label.toInt());
+    ui->clusterLabelComboBox->addItem( label);
+    ui->removeClusterLabelComboBox->removeItem( ui->removeClusterLabelComboBox->currentIndex());
+
+    updateClusterLabelText();
+}
+
+void MainWindow::clusterVariableChanged( int index){
+
+    labels.clear();
+
+    LibMatioHelper::getIntegerValues( clusteringFileName.toStdString().c_str(),
+                                       ui->clusterVariablesComboBox->itemText( index).toStdString().c_str(), labels);
+
+    QVector<int> sortedLabels;
+
+    for( int curVar = 0; curVar < labels.size(); curVar++)
+        if( !sortedLabels.contains( labels[curVar]))
+            sortedLabels << labels[curVar];
+
+    qSort( sortedLabels);
+
+    ui->clusterLabelComboBox->clear();
+    ui->removeClusterLabelComboBox->clear();
+    ui->chosenLabelsWithColorsLabel->clear();
+
+    for( int curVar = 0; curVar < sortedLabels.size(); curVar++)
+        ui->clusterLabelComboBox->addItem( QString::number(sortedLabels[curVar]));
+
+    ui->packetRendererGLWidget->setLabels( labels);
+}
+
+void MainWindow::displayLabelsStateChanged( int state){
+
+    if( state == 0){
+
+        ui->clusterVariablesComboBox->setEnabled(false);
+        ui->clusterLabelComboBox->setEnabled( false);
+        ui->addClusterLabelPushButton->setEnabled( false);
+        ui->removeClusterLabelComboBox->setEnabled( false);
+        ui->removeClusterLabelPushButton->setEnabled( false);
+        ui->chosenLabelsWithColorsLabel->clear();
+        ui->loadClusterMatButton->setEnabled( false);
+        ui->packetRendererGLWidget->disableClusteringDisplay();
+    } else{
+
+        ui->clusterVariablesComboBox->setEnabled( true);
+        ui->clusterLabelComboBox->setEnabled( true);
+        ui->addClusterLabelPushButton->setEnabled( true);
+        ui->removeClusterLabelComboBox->setEnabled( true);
+        ui->removeClusterLabelPushButton->setEnabled( true);
+        ui->loadClusterMatButton->setEnabled( true);
+        if( labels.size() > 0)
+            clusterVariableChanged( ui->clusterLabelComboBox->currentIndex());
     }
 }

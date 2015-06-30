@@ -2,6 +2,10 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QFileDialog>
+#include <QMessageBox>
+#include <QHBoxLayout>
+#include <QLineEdit>
 #include "packetfilereader.h"
 
 namespace Ui {
@@ -16,6 +20,9 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     QString fileName;
     QString directory;
+
+    QString clusteringFileName;
+    std::vector<int> labels;
     ~MainWindow();
 
 private:
@@ -26,6 +33,9 @@ public slots:
     void loadButtonClicked();
     void displayButtonClicked();
     void loadMatFileButtonClicked();
+    void loadClusteringMATFileButtonClicked();
+    void addButtonClicked();
+    void removeButtonClicked();
 
     void minValueTextEdited( QString text);
     void maxValueTextEdited( QString text);
@@ -40,8 +50,12 @@ public slots:
     void edgeSetRangeStateChanged( int state);
 
     void displayArcsStateChanged( int state);
+    void displayLabelsStateChanged( int state);
 
+    void clusterVariableChanged( int index);
 private:
+
+    void updateClusterLabelText();
     void setThreshold( bool isVoxel);
     void setMinValue( bool isVoxel);
     void setMaxValue( bool isVoxel);

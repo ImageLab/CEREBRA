@@ -30,6 +30,7 @@ PacketRendererGLWidget::PacketRendererGLWidget( QWidget *parent) : QGLWidget( pa
     pairsMinValue = 0.0;
     pairsMaxValue = 1.0;
     displayArcs = false;
+    displayLabels = false;
 }
 
 PacketRendererGLWidget::~PacketRendererGLWidget(){
@@ -65,8 +66,10 @@ void PacketRendererGLWidget::initializeGL(){
 void PacketRendererGLWidget::initializeShader(){
 
     if( shaderProgram.isLinked()){
+
         shaderProgram.disableAttributeArray( "vPosition");
         shaderProgram.disableAttributeArray( "vIndex");
+        shaderProgram.disableAttributeArray( "label");
         shaderProgram.release();
         shaderProgram.removeAllShaders();
     }
@@ -75,6 +78,7 @@ void PacketRendererGLWidget::initializeShader(){
 
                                 "in vec4 vPosition;\n"
                                 "in float vIndex;\n"
+                                "in float label;\n"
 
                                 "uniform int interpolationLevel;\n"
                                 "uniform int timeLength;\n"
@@ -90,26 +94,43 @@ void PacketRendererGLWidget::initializeShader(){
                                 "uniform mat4 projection;\n"
                                 "uniform mat4 translationMatrix;\n"
                                 "uniform samplerBuffer u_tbo_tex;\n"
+                                "uniform bool isClusteringEnabled;\n"
+                                "uniform vec4 curLabelColor;\n"
+                                "uniform int curLabel;\n"
+                                "uniform bool isCurLabelEnabled;\n"
 
                                 "out vec4 color;\n"
 
                                 "void main(void){\n"
-                                    "float curIntensity = texelFetch(u_tbo_tex, int(vIndex) + textureOffset).r;\n"
-                                    "float nextIntensity = texelFetch(u_tbo_tex, int(vIndex + mod(textureOffset+1, timeLength))).r;\n"
-                                    "float intensity = curIntensity + interpolationOffset * ((nextIntensity - curIntensity)/(interpolationLevel));\n"
-                                    "float r = (intensity-minValue)/(maxValue - minValue);\n"
-                                    "if( timeLength == 0)\n"
-                                        "color = vec4(1,1,1,1);\n"
-                                    "else if(intensity <= maxThreshold && intensity >= minThreshold)\n"
-                                        "if( !drawsEdges && shouldDrawTransparent)\n"
-                                            "color = vec4(0.83, 0.83, 0.83, 0.05);\n"
+
+                                    "if( isClusteringEnabled){\n"
+                                        "if( int(label) == curLabel)\n"
+                                            "if( isCurLabelEnabled)\n"
+                                                "color = curLabelColor;\n"
+                                            "else\n"
+                                                "color = vec4(0.83, 0.83, 0.83, 0.05);\n"
                                         "else\n"
-                                            "color = vec4(0,0,0,0);\n"
-                                    "else\n"
-                                        "if( !shouldDrawTransparent)\n"
-                                            "color = vec4(r, 1-r, 0, 1.0);\n"
+                                           "color = vec4(-3,0,0,0);\n"
+                                    "}else{\n"
+
+                                        "float curIntensity = texelFetch(u_tbo_tex, int(vIndex) + textureOffset).r;\n"
+                                        "float nextIntensity = texelFetch(u_tbo_tex, int(vIndex + mod(textureOffset+1, timeLength))).r;\n"
+                                        "float intensity = curIntensity + interpolationOffset * ((nextIntensity - curIntensity)/(interpolationLevel));\n"
+                                        "float r = (intensity-minValue)/(maxValue - minValue);\n"
+
+                                        "if( timeLength == 0)\n"
+                                            "color = vec4(1,1,1,1);\n"
+                                        "else if(intensity <= maxThreshold && intensity >= minThreshold)\n"
+                                            "if( !drawsEdges && shouldDrawTransparent)\n"
+                                                "color = vec4( 0.83, 0.83, 0.83, 0.05);\n"
+                                            "else\n"
+                                                "color = vec4( -3,0,0,0);\n"
                                         "else\n"
-                                            "color = vec4(0,0,0,0);\n"
+                                            "if( !shouldDrawTransparent)\n"
+                                                "color = vec4(r, 1-r, 0, 1.0);\n"
+                                            "else\n"
+                                                "color = vec4( -3,0,0,0);\n"
+                                    "}\n"
                                     "gl_Position = projection * translationMatrix * modelView * vPosition;\n"
                                 "}";
 
@@ -119,20 +140,21 @@ void PacketRendererGLWidget::initializeShader(){
 
                                    "out vec4 fColor;\n"
                                    "void main(void){\n"
-                                        "if( color.x + color.y < 0.5)\n"
+                                        "if( color.x < -1)\n"
                                             "discard;\n"
 
                                         "fColor = color;\n"
                                    "}";
 
-    shaderProgram.addShaderFromSourceCode(QGLShader::Vertex, vertexShaderSource);
-    shaderProgram.addShaderFromSourceCode(QGLShader::Fragment, fragmentShaderSource);
+    shaderProgram.addShaderFromSourceCode( QGLShader::Vertex, vertexShaderSource);
+    shaderProgram.addShaderFromSourceCode( QGLShader::Fragment, fragmentShaderSource);
 
     shaderProgram.link();
     shaderProgram.bind();
 
     shaderProgram.enableAttributeArray( "vPosition");
     shaderProgram.enableAttributeArray( "vIndex");
+    shaderProgram.enableAttributeArray( "label");
 }
 
 void PacketRendererGLWidget::setPacket(Packet *packet, QString workingDirectory){
@@ -156,7 +178,6 @@ void PacketRendererGLWidget::setPacket(Packet *packet, QString workingDirectory)
             packetToRender->intensities[voxel].push_back((float)1.0);
     }
 
-
     createVoxelTexture();
 
     textureOffset = 0;
@@ -164,13 +185,6 @@ void PacketRendererGLWidget::setPacket(Packet *packet, QString workingDirectory)
 
     updateAttributeArrays();
     updateMatrices();
-
-    GLint timeLength = packetToRender->intensities[0].size();
-
-    shaderProgram.setUniformValue( "textureOffset", textureOffset);
-    shaderProgram.setUniformValue( "interpolationOffset", interpolationOffset);
-    shaderProgram.setUniformValue( "interpolationLevel", INTERPOLATION_LEVEL);
-    shaderProgram.setUniformValue( "timeLength", timeLength);
 
     if( shouldAnimate)
         aTimer->start(UPDATE_FREQ_IN_MS); //updating per this amount of milliseconds
@@ -180,35 +194,73 @@ void PacketRendererGLWidget::paintGL(){
 
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    shaderProgram.setUniformValue( "projection", projection);
+    shaderProgram.setUniformValue( "modelView", modelView);
+    shaderProgram.setUniformValue( "translationMatrix", translationMatrix);
     shaderProgram.setUniformValue( "shouldDrawTransparent", false);
-    shaderProgram.setUniformValue( "drawsEdges", true);
+    shaderProgram.setUniformValue( "textureOffset", textureOffset);
+    shaderProgram.setUniformValue( "interpolationOffset", interpolationOffset);
+    shaderProgram.setUniformValue( "interpolationLevel", INTERPOLATION_LEVEL);
+    shaderProgram.setUniformValue( "timeLength", (packetToRender && packetToRender->intensities.size() > 0)?(GLint)packetToRender->intensities[0].size():0);
 
     if( edgeVertices.size() > 0 && displayArcs){
+
+        shaderProgram.setUniformValue( "drawsEdges", true);
+        shaderProgram.setUniformValue( "isClusteringEnabled", false);
         shaderProgram.setUniformValue( "minThreshold", pairsMinThreshold);
         shaderProgram.setUniformValue( "maxThreshold", pairsMaxThreshold);
         shaderProgram.setUniformValue( "minValue", pairsMinValue);
         shaderProgram.setUniformValue( "maxValue", pairsMaxValue);
+
         shaderProgram.setAttributeArray( "vPosition", edgeVertices.constData());
         shaderProgram.setAttributeArray( "vIndex", edgeTextureIndex.constData(), 1);
-        glDrawArrays(GL_LINES, 0, edgeVertices.size());
+        shaderProgram.setAttributeArray( "label", edgeLabels.constData(), 1);
+
+        glDrawArrays( GL_LINES, 0, edgeVertices.size());
+
+        shaderProgram.setAttributeArray( "vPosition", voxelVertices.constData());
+        shaderProgram.setAttributeArray( "vIndex", voxelTextureIndex.constData(), 1);
+        shaderProgram.setAttributeArray( "label", labels.constData(), 1);
     }
 
+    shaderProgram.setUniformValue( "isClusteringEnabled", displayLabels);
     shaderProgram.setUniformValue( "drawsEdges", false);
     shaderProgram.setUniformValue( "minThreshold", voxelMinThreshold);
     shaderProgram.setUniformValue( "maxThreshold", voxelMaxThreshold);
     shaderProgram.setUniformValue( "minValue", voxelMinValue);
     shaderProgram.setUniformValue( "maxValue", voxelMaxValue);
 
-    if( edgeVertices.size() > 0 && displayArcs){
-        shaderProgram.setAttributeArray( "vPosition", voxelVertices.constData());
-        shaderProgram.setAttributeArray( "vIndex", voxelTextureIndex.constData(), 1);
-    }
+    if( displayLabels){
 
-    glDrawElements( GL_TRIANGLES, voxelIndices.size(), GL_UNSIGNED_INT, nullptr);
+        for( std::map< int, bool>::iterator iter = labelActivations.begin(); iter != labelActivations.end(); ++iter){
+            if( labelActivations[iter->first]){
+
+                shaderProgram.setUniformValue( "curLabel", iter->first);
+                shaderProgram.setUniformValue( "isCurLabelEnabled", true);
+                QVector4D color = QVector4D( ((float)colorsOfLabels[iter->first].first/255),
+                                             ((float)colorsOfLabels[iter->first].second.first/255),
+                                             ((float)colorsOfLabels[iter->first].second.second/255), 1.0);
+                shaderProgram.setUniformValue( "curLabelColor", color);
+                glDrawElements( GL_TRIANGLES, (GLsizei)voxelIndices.size(), GL_UNSIGNED_INT, nullptr);
+            }
+        }
+    } else
+        glDrawElements( GL_TRIANGLES, (GLsizei)voxelIndices.size(), GL_UNSIGNED_INT, nullptr);
 
     glDepthMask(GL_FALSE);
     shaderProgram.setUniformValue( "shouldDrawTransparent", true);
-    glDrawElements( GL_TRIANGLES, voxelIndices.size(), GL_UNSIGNED_INT, nullptr);
+
+    if( displayLabels){
+        for( std::map< int, bool>::iterator iter = labelActivations.begin(); iter != labelActivations.end(); ++iter){
+            if( !labelActivations[iter->first]){
+                shaderProgram.setUniformValue( "curLabel", iter->first);
+                shaderProgram.setUniformValue( "isCurLabelEnabled", false);
+                glDrawElements( GL_TRIANGLES, (GLsizei)voxelIndices.size(), GL_UNSIGNED_INT, nullptr);
+            }
+        }
+    } else
+        glDrawElements( GL_TRIANGLES, (GLsizei)voxelIndices.size(), GL_UNSIGNED_INT, nullptr);
+
     glDepthMask(GL_TRUE);
 }
 
@@ -298,9 +350,6 @@ void PacketRendererGLWidget::updateMatrices(){
     QVector3D cameraUpDirection = cameraTransformation * QVector3D(0, 1, 0);
     modelView.lookAt( cameraPosition, QVector3D(0,0,0), cameraUpDirection);
 
-    shaderProgram.setUniformValue("projection", projection);
-    shaderProgram.setUniformValue("modelView", modelView);
-    shaderProgram.setUniformValue("translationMatrix", translationMatrix);
     updateGL();
 }
 
@@ -314,7 +363,7 @@ void PacketRendererGLWidget::updateAttributeArrays(){
     for( int currentVoxel = 0; currentVoxel < (int)packetToRender->voxel3DPositions.size(); currentVoxel++){
 
         int curVoxelIndexBegin = NUM_OF_VERTICES * currentVoxel;
-        int curVoxelTextureBegin = currentVoxel*packetToRender->intensities[currentVoxel].size();
+        int curVoxelTextureBegin = currentVoxel*(int)packetToRender->intensities[currentVoxel].size();
         float x = packetToRender->voxel3DPositions[currentVoxel].first;
         float y = packetToRender->voxel3DPositions[currentVoxel].second.first;
         float z = packetToRender->voxel3DPositions[currentVoxel].second.second;
@@ -358,11 +407,11 @@ void PacketRendererGLWidget::updateAttributeArrays(){
     edgeVertices.clear();
     edgeTextureIndex.clear();
 
-    int edgeTextureBegin = (int)packetToRender->voxel3DPositions.size() * packetToRender->intensities[0].size();
+    int edgeTextureBegin = (int)packetToRender->voxel3DPositions.size() * (int)packetToRender->intensities[0].size();
 
     for( int pair = 0; pair < (int)packetToRender->edges.size(); pair++){
 
-        int curEdgeTextureBegin = edgeTextureBegin + pair*packetToRender->edgeIntensities[pair].size();
+        int curEdgeTextureBegin = edgeTextureBegin + pair*(int)packetToRender->edgeIntensities[pair].size();
 
         QVector3D origin(packetToRender->voxel3DPositions[packetToRender->edges[pair].first].first,
                 packetToRender->voxel3DPositions[packetToRender->edges[pair].first].second.first,
@@ -379,17 +428,24 @@ void PacketRendererGLWidget::updateAttributeArrays(){
                          << curEdgeTextureBegin;
     }
 
+    edgeLabels.resize( edgeTextureIndex.size());
+
     initializeShader();
 
     shaderProgram.setAttributeArray( "vPosition", voxelVertices.constData());
     shaderProgram.setAttributeArray( "vIndex", voxelTextureIndex.constData(), 1);
+
+    if( labels.size() == 0)
+        labels.resize(voxelVertices.size());
+
+    shaderProgram.setAttributeArray( "label", labels.constData(), 1);
 }
 
 void PacketRendererGLWidget::createVoxelTexture(){
 
-    const int totalVoxel = packetToRender->intensities.size();
-    const int totalTime = packetToRender->intensities[0].size();
-    const int totalPairs = packetToRender->edgeIntensities.size();
+    const int totalVoxel = (int)packetToRender->intensities.size();
+    const int totalTime = (int)packetToRender->intensities[0].size();
+    const int totalPairs = (int)packetToRender->edgeIntensities.size();
     const int totalVoxelIntensityValues = totalVoxel*totalTime;
     const int totalPairIntensityValues = totalPairs*totalTime;
 
@@ -410,7 +466,7 @@ void PacketRendererGLWidget::createVoxelTexture(){
     glGenTextures( 1, &voxelTBO);
     glBindTexture( GL_TEXTURE_BUFFER, voxelTBO);
     glTexBuffer( GL_TEXTURE_BUFFER, GL_R32F, voxelBO);
-    shaderProgram.setUniformValue("u_tbo_tex", 0);
+    shaderProgram.setUniformValue( "u_tbo_tex", 0);
 
     delete[] voxelBOData;
 }
@@ -420,14 +476,17 @@ void PacketRendererGLWidget::animate(){
     if( packetToRender == NULL || packetToRender->intensities.size() < 1)
         return;
 
+    if( displayLabels){
+
+        updateGL();
+        return;
+    }
+
     interpolationOffset = (interpolationOffset+1)%INTERPOLATION_LEVEL;
     if( interpolationOffset == 0){
 
         textureOffset = (textureOffset+1)%packetToRender->intensities[0].size();
-        shaderProgram.setUniformValue( "textureOffset", textureOffset);
     }
-
-    shaderProgram.setUniformValue( "interpolationOffset", interpolationOffset);
 
     updateGL();
 }
@@ -480,4 +539,83 @@ void PacketRendererGLWidget::setPairsMaxValue( float maxValue){
 void PacketRendererGLWidget::shouldDisplayArcs( bool shouldDisplay){
 
     this->displayArcs = shouldDisplay;
+}
+
+void PacketRendererGLWidget::labelEnabled( int label, int r, int g, int b){
+
+    if( labelActivations.find(label) != labelActivations.end()){
+
+        labelActivations[label] = true;
+        setRGBForALabel( label, r, g, b);
+    }
+}
+
+void PacketRendererGLWidget::labelEnabled( int label){
+
+    if( labelActivations.find(label) != labelActivations.end())
+        labelActivations[label] = true;
+}
+
+void PacketRendererGLWidget::labelDisabled( int label){
+
+    if( labelActivations.find(label) != labelActivations.end())
+        labelActivations[label] = false;
+}
+
+void PacketRendererGLWidget::setLabels( std::vector<int> &voxelLabels){
+
+    displayLabels = true;
+
+    labelActivations.clear();
+    labels.clear();
+    colorsOfLabels.clear();
+
+    for( int curLabel = 0; curLabel < voxelLabels.size(); curLabel++){
+
+        labels << (GLfloat)voxelLabels[curLabel]
+               << (GLfloat)voxelLabels[curLabel]
+               << (GLfloat)voxelLabels[curLabel]
+               << (GLfloat)voxelLabels[curLabel]
+               << (GLfloat)voxelLabels[curLabel]
+               << (GLfloat)voxelLabels[curLabel]
+               << (GLfloat)voxelLabels[curLabel]
+               << (GLfloat)voxelLabels[curLabel];
+
+        if( colorsOfLabels.find(voxelLabels[curLabel]) == colorsOfLabels.end()){
+
+            labelActivations[voxelLabels[curLabel]] = false;
+            colorsOfLabels[voxelLabels[curLabel]].first = rand() % 256;
+            colorsOfLabels[voxelLabels[curLabel]].second.first = rand() % 256;
+            colorsOfLabels[voxelLabels[curLabel]].second.second = rand() % 256;
+        }
+    }
+}
+
+void PacketRendererGLWidget::disableClusteringDisplay(){
+
+    displayLabels = false;
+
+    labels.clear();
+    labelActivations.clear();
+    colorsOfLabels.clear();
+}
+
+void PacketRendererGLWidget::getRGBOfALabel( int label, int &r, int &g, int &b){
+
+    if( colorsOfLabels.find(label) != colorsOfLabels.end()){
+
+        r = colorsOfLabels[label].first;
+        g = colorsOfLabels[label].second.first;
+        b = colorsOfLabels[label].second.second;
+    }
+}
+
+void PacketRendererGLWidget::setRGBForALabel( int label, int r, int g, int b){
+
+    if( colorsOfLabels.find(label) != colorsOfLabels.end()){
+
+        colorsOfLabels[label].first = r;
+        colorsOfLabels[label].second.first = g;
+        colorsOfLabels[label].second.second = b;
+    }
 }

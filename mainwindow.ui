@@ -9,15 +9,21 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1280</width>
-    <height>924</height>
+    <width>1302</width>
+    <height>1216</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>CEREBRA</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QHBoxLayout" name="horizontalLayout_2">
+   <layout class="QHBoxLayout" name="centralWidgetHLayout">
     <item>
      <widget class="PacketRendererGLWidget" name="packetRendererGLWidget" native="true">
       <property name="enabled">
@@ -38,558 +44,704 @@
      </widget>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout">
+     <layout class="QVBoxLayout" name="rightPanelVLayout">
       <item>
-       <layout class="QVBoxLayout" name="rightPanelLayout">
-        <item>
-         <widget class="QTabWidget" name="matlabTab">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <widget class="QWidget" name="matlabTabTabWidgetPage1" native="true">
-           <attribute name="title">
-            <string>Matlab Parameters</string>
-           </attribute>
-           <layout class="QVBoxLayout" name="verticalLayout_2">
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_4">
-              <item>
-               <widget class="QLabel" name="voxelPosLabel">
-                <property name="text">
-                 <string>Voxel Positions:</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QComboBox" name="comboBox"/>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_5">
-              <item>
-               <widget class="QLabel" name="voxelIntensitiesLabel">
-                <property name="text">
-                 <string>Voxel Intensities:</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QComboBox" name="comboBox_2"/>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_6">
-              <item>
-               <widget class="QLabel" name="edgePairsLabel">
-                <property name="text">
-                 <string>Edge Pairs:</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QComboBox" name="comboBox_3"/>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_7">
-              <item>
-               <widget class="QLabel" name="edgeIntensitiesLabel">
-                <property name="text">
-                 <string>Edge Intensities:</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QComboBox" name="comboBox_4"/>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <widget class="QPushButton" name="displayButton">
-              <property name="text">
-               <string>Display</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </widget>
-        </item>
-        <item>
-         <widget class="QTabWidget" name="graphicalSettingsTabs">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="tabPosition">
-           <enum>QTabWidget::West</enum>
-          </property>
-          <property name="tabShape">
-           <enum>QTabWidget::Rounded</enum>
-          </property>
-          <property name="currentIndex">
-           <number>0</number>
-          </property>
-          <widget class="QWidget" name="voxelTab">
-           <attribute name="title">
-            <string>Voxel</string>
-           </attribute>
-           <layout class="QVBoxLayout" name="verticalLayout_6">
-            <item>
-             <widget class="QWidget" name="minMaxValuesWidget" native="true">
-              <layout class="QHBoxLayout" name="minMaxValuesLayout">
-               <property name="sizeConstraint">
-                <enum>QLayout::SetDefaultConstraint</enum>
-               </property>
-               <item>
-                <layout class="QVBoxLayout" name="verticalLayout_5">
-                 <item>
-                  <widget class="QLabel" name="minValueLabel">
-                   <property name="maximumSize">
-                    <size>
-                     <width>100</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="text">
-                    <string>Min Voxel Intensity</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLineEdit" name="minValueTextField">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>80</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="text">
-                    <string>0</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <spacer name="horizontalSpacer">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeType">
-                  <enum>QSizePolicy::MinimumExpanding</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <layout class="QVBoxLayout" name="verticalLayout_4">
-                 <item>
-                  <widget class="QLabel" name="maxValueLabel">
-                   <property name="text">
-                    <string>Max Voxel Intensity</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLineEdit" name="maxValueTextField">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>80</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="text">
-                    <string>1</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-              </layout>
-             </widget>
-            </item>
-            <item>
-             <layout class="QVBoxLayout" name="thresholdLayout">
-              <item>
-               <widget class="QLabel" name="thresholdLabel">
-                <property name="text">
-                 <string>Threshold</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_9">
-                <item>
-                 <widget class="QSlider" name="thresholdSlider">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="thresholdValue">
-                  <property name="text">
-                   <string>0</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QVBoxLayout" name="rangeLayout">
-              <item>
-               <widget class="QCheckBox" name="setRangeCheckBox">
-                <property name="text">
-                 <string>Set Range</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="rangeLabel">
-                <property name="text">
-                 <string>Range</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_10">
-                <item>
-                 <widget class="QSlider" name="rangeSlider">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="rangeValuePercent">
-                  <property name="text">
-                   <string>0%</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QVBoxLayout" name="verticalLayout">
-              <item>
-               <widget class="QLabel" name="label_3">
-                <property name="text">
-                 <string>Transparent (Ignored) Range:</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="minThresholdLabel">
-                <property name="text">
-                 <string>Min Value:</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="maxThresholdLabel">
-                <property name="text">
-                 <string>Max Value:</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-           </layout>
-          </widget>
-          <widget class="QWidget" name="edgeTab">
-           <attribute name="title">
-            <string>Arcs</string>
-           </attribute>
-           <layout class="QVBoxLayout" name="verticalLayout_6">
-            <item>
-             <widget class="QCheckBox" name="displayArcsCheckBox">
-              <property name="text">
-               <string>Display Arcs</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QWidget" name="edgeMinMaxValuesWidget" native="true">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
-              <layout class="QHBoxLayout" name="minMaxValuesLayout">
-               <property name="sizeConstraint">
-                <enum>QLayout::SetDefaultConstraint</enum>
-               </property>
-               <item>
-                <layout class="QVBoxLayout" name="edgeMinLayout">
-                 <item>
-                  <widget class="QLabel" name="edgeMinValueLabel">
-                   <property name="maximumSize">
-                    <size>
-                     <width>100</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="text">
-                    <string>Min Arcs Intensity</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLineEdit" name="edgeMinValueTextField">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>80</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="text">
-                    <string>0</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <spacer name="horizontalSpacer">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeType">
-                  <enum>QSizePolicy::MinimumExpanding</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <layout class="QVBoxLayout" name="edgeMaxLayout">
-                 <item>
-                  <widget class="QLabel" name="edgeMaxValueLabel">
-                   <property name="text">
-                    <string>Max Arcs Intensity</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLineEdit" name="edgeMaxValueTextField">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>80</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="text">
-                    <string>1</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-              </layout>
-             </widget>
-            </item>
-            <item>
-             <layout class="QVBoxLayout" name="edgeThresholdLayout">
-              <item>
-               <widget class="QLabel" name="edgeThresholdLabel">
-                <property name="text">
-                 <string>Threshold</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <layout class="QHBoxLayout" name="edgeHorizThresholdLayout">
-                <item>
-                 <widget class="QSlider" name="edgeThresholdSlider">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="edgeThresholdValue">
-                  <property name="text">
-                   <string>0</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QVBoxLayout" name="edgeRangeLayout">
-              <item>
-               <widget class="QCheckBox" name="edgeSetRangeCheckBox">
-                <property name="text">
-                 <string>Set Range</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="edgeRangeLabel">
-                <property name="text">
-                 <string>Range</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <layout class="QHBoxLayout" name="edgeRangeHorizontalLayout">
-                <item>
-                 <widget class="QSlider" name="edgeRangeSlider">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="edgeRangeValuePercent">
-                  <property name="text">
-                   <string>0%</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QVBoxLayout" name="verticalLayout_3">
-              <item>
-               <widget class="QLabel" name="label_4">
-                <property name="text">
-                 <string>Ignored Range:</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="edgeMinThresholdLabel">
-                <property name="text">
-                 <string>Min Value:</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="edgeMaxThresholdLabel">
-                <property name="text">
-                 <string>Max Value:</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-           </layout>
-          </widget>
-         </widget>
-        </item>
-        <item>
-         <spacer name="verticalSpacer">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="bottomButtonsLayout">
-          <property name="sizeConstraint">
-           <enum>QLayout::SetFixedSize</enum>
-          </property>
+       <widget class="QTabWidget" name="matlabTab">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>400</height>
+         </size>
+        </property>
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <widget class="QWidget" name="matlabTabWidget">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <attribute name="title">
+          <string>Matlab Parameters</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="matlabTabWidgetVLayout">
           <item>
-           <widget class="QPushButton" name="loadButton">
-            <property name="text">
-             <string>Load</string>
-            </property>
-           </widget>
+           <layout class="QHBoxLayout" name="voxelPositionsHLayout">
+            <item>
+             <widget class="QLabel" name="voxelPosLabel">
+              <property name="text">
+               <string>Voxel Positions:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="voxelPositionComboBox"/>
+            </item>
+           </layout>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton">
-            <property name="text">
-             <string>Load MAT File</string>
-            </property>
-           </widget>
+           <layout class="QHBoxLayout" name="voxelIntensitiesHLayout">
+            <item>
+             <widget class="QLabel" name="voxelIntensitiesLabel">
+              <property name="text">
+               <string>Voxel Intensities:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="voxelIntensitiesComboBox"/>
+            </item>
+           </layout>
           </item>
           <item>
-           <widget class="QPushButton" name="quitButton">
+           <layout class="QHBoxLayout" name="edgePairsHLayout">
+            <item>
+             <widget class="QLabel" name="edgePairsLabel">
+              <property name="text">
+               <string>Edge Pairs:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="edgePairsComboBox"/>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="edgeIntensitiesHLayout">
+            <item>
+             <widget class="QLabel" name="edgeIntensitiesLabel">
+              <property name="text">
+               <string>Edge Intensities:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="edgeIntensitiesComboBox"/>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QPushButton" name="displayButton">
             <property name="text">
-             <string>Quit</string>
+             <string>Display</string>
             </property>
            </widget>
           </item>
          </layout>
+        </widget>
+        <widget class="QWidget" name="clusteringTabWidget">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <attribute name="title">
+          <string>Clustering</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="clusteringTabVLayout">
+          <item>
+           <widget class="QScrollArea" name="clusteringScrollArea">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>300</height>
+             </size>
+            </property>
+            <property name="widgetResizable">
+             <bool>true</bool>
+            </property>
+            <widget class="QWidget" name="clusteringScrollAreaWidget">
+             <property name="geometry">
+              <rect>
+               <x>0</x>
+               <y>0</y>
+               <width>495</width>
+               <height>266</height>
+              </rect>
+             </property>
+             <layout class="QVBoxLayout" name="clusteringTabVLayout">
+              <item>
+               <layout class="QVBoxLayout" name="clusteringSettingsVLayout">
+                <item>
+                 <layout class="QHBoxLayout" name="clusteringVariableHLayout">
+                  <item>
+                   <widget class="QCheckBox" name="displayLabelsCheckBox">
+                    <property name="maximumSize">
+                     <size>
+                      <width>160</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>ClusterVars.:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QComboBox" name="clusterVariablesComboBox"/>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="addLabelHLayout">
+                  <item>
+                   <widget class="QComboBox" name="clusterLabelComboBox">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="addClusterLabelPushButton">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>80</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>Add</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="removeClusterLabelHLayout">
+                  <item>
+                   <widget class="QComboBox" name="removeClusterLabelComboBox"/>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="removeClusterLabelPushButton">
+                    <property name="maximumSize">
+                     <size>
+                      <width>80</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>Remove</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <widget class="QLabel" name="chosenLabelsWithColorsLabel">
+                  <property name="text">
+                   <string/>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="loadClusterMatButton">
+            <property name="text">
+             <string>Load Clustering MAT File</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+      </item>
+      <item>
+       <widget class="QTabWidget" name="graphicalSettingsTabs">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="tabPosition">
+         <enum>QTabWidget::West</enum>
+        </property>
+        <property name="tabShape">
+         <enum>QTabWidget::Rounded</enum>
+        </property>
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <widget class="QWidget" name="voxelTab">
+         <attribute name="title">
+          <string>Voxel</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_6">
+          <item>
+           <widget class="QWidget" name="minMaxValuesWidget" native="true">
+            <layout class="QHBoxLayout" name="minMaxValuesLayout">
+             <property name="sizeConstraint">
+              <enum>QLayout::SetDefaultConstraint</enum>
+             </property>
+             <item>
+              <layout class="QVBoxLayout" name="minValuesVLayout">
+               <item>
+                <widget class="QLabel" name="minValueLabel">
+                 <property name="maximumSize">
+                  <size>
+                   <width>10000</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>Min Voxel Intensity</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="minValueTextField">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>80</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>0</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <spacer name="minIntensityMaxIntensityHSpacer">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeType">
+                <enum>QSizePolicy::MinimumExpanding</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="maxValuesVLayout">
+               <item>
+                <widget class="QLabel" name="maxValueLabel">
+                 <property name="text">
+                  <string>Max Voxel Intensity</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="maxValueTextField">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>80</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>1</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="thresholdVLayout">
+            <item>
+             <widget class="QLabel" name="thresholdLabel">
+              <property name="text">
+               <string>Threshold</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="thresholdHLayout">
+              <item>
+               <widget class="QSlider" name="thresholdSlider">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="thresholdValue">
+                <property name="text">
+                 <string>0</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="rangeVLayout">
+            <item>
+             <widget class="QCheckBox" name="setRangeCheckBox">
+              <property name="text">
+               <string>Set Range</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="rangeLabel">
+              <property name="text">
+               <string>Range</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="rangeHLayout">
+              <item>
+               <widget class="QSlider" name="rangeSlider">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="rangeValuePercent">
+                <property name="text">
+                 <string>0%</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="rangeDisplayVLayout">
+            <item>
+             <widget class="QLabel" name="rangeDisplayInfoLabel">
+              <property name="text">
+               <string>Transparent (Ignored) Range:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="minThresholdLabel">
+              <property name="text">
+               <string>Min Value:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="maxThresholdLabel">
+              <property name="text">
+               <string>Max Value:</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="edgeTab">
+         <attribute name="title">
+          <string>Arcs</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_6">
+          <item>
+           <widget class="QCheckBox" name="displayArcsCheckBox">
+            <property name="text">
+             <string>Display Arcs</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QWidget" name="edgeMinMaxValuesWidget" native="true">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <layout class="QHBoxLayout" name="minMaxValuesLayout">
+             <property name="sizeConstraint">
+              <enum>QLayout::SetDefaultConstraint</enum>
+             </property>
+             <item>
+              <layout class="QVBoxLayout" name="edgeMinVLayout">
+               <item>
+                <widget class="QLabel" name="edgeMinValueLabel">
+                 <property name="maximumSize">
+                  <size>
+                   <width>10000</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>Min Arcs Intensity</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="edgeMinValueTextField">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>80</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>0</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <spacer name="minArcsMaxArcsHSpacer">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeType">
+                <enum>QSizePolicy::MinimumExpanding</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="edgeMaxVLayout">
+               <item>
+                <widget class="QLabel" name="edgeMaxValueLabel">
+                 <property name="text">
+                  <string>Max Arcs Intensity</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="edgeMaxValueTextField">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>80</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>1</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="edgeThresholdVLayout">
+            <item>
+             <widget class="QLabel" name="edgeThresholdLabel">
+              <property name="text">
+               <string>Threshold</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="edgeThresholdHLayout">
+              <item>
+               <widget class="QSlider" name="edgeThresholdSlider">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="edgeThresholdValue">
+                <property name="text">
+                 <string>0</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="edgeRangeVLayout">
+            <item>
+             <widget class="QCheckBox" name="edgeSetRangeCheckBox">
+              <property name="text">
+               <string>Set Range</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="edgeRangeLabel">
+              <property name="text">
+               <string>Range</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="edgeRangeHLayout">
+              <item>
+               <widget class="QSlider" name="edgeRangeSlider">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="edgeRangeValuePercent">
+                <property name="text">
+                 <string>0%</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="edgeRangeDisplayVLayout">
+            <item>
+             <widget class="QLabel" name="edgeRangeDisplayInfoLabel">
+              <property name="text">
+               <string>Ignored Range:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="edgeMinThresholdLabel">
+              <property name="text">
+               <string>Min Value:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="edgeMaxThresholdLabel">
+              <property name="text">
+               <string>Max Value:</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+      </item>
+      <item>
+       <spacer name="graphicalSettingsAndButtonsVSpacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="bottomButtonsHLayout">
+        <property name="sizeConstraint">
+         <enum>QLayout::SetFixedSize</enum>
+        </property>
+        <item>
+         <widget class="QPushButton" name="loadButton">
+          <property name="text">
+           <string>Load</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton">
+          <property name="text">
+           <string>Load MAT File</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="quitButton">
+          <property name="text">
+           <string>Quit</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
@@ -616,8 +768,8 @@
    <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1011</x>
-     <y>755</y>
+     <x>1281</x>
+     <y>1195</y>
     </hint>
     <hint type="destinationlabel">
      <x>433</x>
@@ -632,8 +784,8 @@
    <slot>loadButtonClicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>668</x>
-     <y>744</y>
+     <x>915</x>
+     <y>1195</y>
     </hint>
     <hint type="destinationlabel">
      <x>553</x>
@@ -648,8 +800,8 @@
    <slot>loadMatFileButtonClicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>771</x>
-     <y>742</y>
+     <x>1098</x>
+     <y>1195</y>
     </hint>
     <hint type="destinationlabel">
      <x>745</x>
@@ -664,8 +816,8 @@
    <slot>minValueTextEdited(QString)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>597</x>
-     <y>416</y>
+     <x>894</x>
+     <y>537</y>
     </hint>
     <hint type="destinationlabel">
      <x>511</x>
@@ -680,8 +832,8 @@
    <slot>maxValueTextEdited(QString)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>934</x>
-     <y>416</y>
+     <x>1139</x>
+     <y>537</y>
     </hint>
     <hint type="destinationlabel">
      <x>511</x>
@@ -696,8 +848,8 @@
    <slot>minEdgeValueTextEdited(QString)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>597</x>
-     <y>416</y>
+     <x>875</x>
+     <y>483</y>
     </hint>
     <hint type="destinationlabel">
      <x>511</x>
@@ -712,8 +864,8 @@
    <slot>maxEdgeValueTextEdited(QString)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>939</x>
-     <y>416</y>
+     <x>875</x>
+     <y>483</y>
     </hint>
     <hint type="destinationlabel">
      <x>511</x>
@@ -728,8 +880,8 @@
    <slot>thresholdSliderValueChanged(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>767</x>
-     <y>474</y>
+     <x>1235</x>
+     <y>659</y>
     </hint>
     <hint type="destinationlabel">
      <x>511</x>
@@ -744,8 +896,8 @@
    <slot>rangeSliderValueChanged(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>762</x>
-     <y>548</y>
+     <x>1214</x>
+     <y>787</y>
     </hint>
     <hint type="destinationlabel">
      <x>511</x>
@@ -760,8 +912,8 @@
    <slot>setRangeStateChanged(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>773</x>
-     <y>503</y>
+     <x>1259</x>
+     <y>714</y>
     </hint>
     <hint type="destinationlabel">
      <x>511</x>
@@ -776,8 +928,8 @@
    <slot>displayArcsStateChanged(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>773</x>
-     <y>386</y>
+     <x>859</x>
+     <y>450</y>
     </hint>
     <hint type="destinationlabel">
      <x>511</x>
@@ -792,8 +944,8 @@
    <slot>edgeRangeSliderValueChanged(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>762</x>
-     <y>571</y>
+     <x>895</x>
+     <y>489</y>
     </hint>
     <hint type="destinationlabel">
      <x>511</x>
@@ -808,8 +960,8 @@
    <slot>edgeThresholdSliderValueChanged(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>767</x>
-     <y>497</y>
+     <x>895</x>
+     <y>486</y>
     </hint>
     <hint type="destinationlabel">
      <x>511</x>
@@ -824,8 +976,8 @@
    <slot>edgeSetRangeStateChanged(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>773</x>
-     <y>526</y>
+     <x>895</x>
+     <y>489</y>
     </hint>
     <hint type="destinationlabel">
      <x>511</x>
@@ -840,12 +992,92 @@
    <slot>displayButtonClicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1020</x>
-     <y>275</y>
+     <x>827</x>
+     <y>82</y>
     </hint>
     <hint type="destinationlabel">
      <x>639</x>
      <y>461</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>loadClusterMatButton</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>loadClusteringMATFileButtonClicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1012</x>
+     <y>373</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>650</x>
+     <y>607</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>clusterVariablesComboBox</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>clusterVariableChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1129</x>
+     <y>114</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>650</x>
+     <y>607</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>addClusterLabelPushButton</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>addButtonClicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1214</x>
+     <y>174</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>650</x>
+     <y>607</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>removeClusterLabelPushButton</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>removeButtonClicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1199</x>
+     <y>234</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>650</x>
+     <y>607</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>displayLabelsCheckBox</sender>
+   <signal>stateChanged(int)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>displayLabelsStateChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>864</x>
+     <y>114</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>650</x>
+     <y>607</y>
     </hint>
    </hints>
   </connection>
@@ -865,5 +1097,10 @@
   <slot>edgeRangeSliderValueChanged(int)</slot>
   <slot>edgeThresholdSliderValueChanged(int)</slot>
   <slot>edgeSetRangeStateChanged(int)</slot>
+  <slot>loadClusteringMATFileButtonClicked()</slot>
+  <slot>clusterVariableChanged(int)</slot>
+  <slot>addButtonClicked()</slot>
+  <slot>removeButtonClicked()</slot>
+  <slot>displayLabelsStateChanged(int)</slot>
  </slots>
 </ui>

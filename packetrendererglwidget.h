@@ -103,6 +103,13 @@ public:
     void setPairsMinValue( float pairsMinValue);
     void setPairsMaxValue( float pairsMaxValue);
     void shouldDisplayArcs( bool shouldDisplay);
+    void labelEnabled( int label, int r, int g, int b);
+    void labelEnabled( int label);
+    void labelDisabled( int label);
+    void disableClusteringDisplay();
+    void setLabels( std::vector<int> &voxelLabels);
+    void getRGBOfALabel( int label, int &r, int &g, int &b);
+    void setRGBForALabel( int label, int r, int g, int b);
 
 //auxiliary functions
 private:
@@ -137,11 +144,16 @@ private:
     QGLShaderProgram shaderProgram;
     std::vector<unsigned int> voxelIndices;
     std::vector<unsigned int> edgeIndices;
+    std::vector<int> voxelLabels;
+    std::map< int, std::pair<int, std::pair< int, int> > > colorsOfLabels;
+    std::map< int, bool> labelActivations;
     QVector<unsigned int> indicesQ;
     QVector<QVector4D> voxelVertices; //passed to gpu
     QVector<GLfloat> voxelTextureIndex; //passed to gpu
     QVector<QVector4D> edgeVertices; //passed to gpu
     QVector<GLfloat> edgeTextureIndex; //passed to gpu
+    QVector<GLfloat> edgeLabels;
+    QVector<GLfloat> labels;
     GLuint textureOffset;
     GLuint interpolationOffset;
     QMatrix4x4 projection;
@@ -165,6 +177,7 @@ private:
     float pairsMaxThreshold;
     float pairsMinThreshold;
     bool displayArcs;
+    bool displayLabels;
 
     /**
      * To handle rotation, zooming etc.
