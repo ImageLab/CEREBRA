@@ -45,6 +45,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::loadButtonClicked(){
 
+    clusteringFileName.clear();
+    ui->displayArcsCheckBox->setChecked( false);
     ui->matlabTab->setEnabled( false);
 
     QString directoryName = QFileDialog::getExistingDirectory();
@@ -302,6 +304,7 @@ void MainWindow::displayArcsStateChanged( int state){
 void MainWindow::loadClusteringMATFileButtonClicked(){
 
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"),"",tr("Files (*.mat*)"));
+
     if( fileName.length()== 0)
         return;
 
@@ -364,23 +367,25 @@ void MainWindow::clusterVariableChanged( int index){
 
     labels.clear();
 
-    LibMatioHelper::getIntegerValues( clusteringFileName.toStdString().c_str(),
-                                       ui->clusterVariablesComboBox->itemText( index).toStdString().c_str(), labels);
+    if( clusteringFileName.length() > 0){
+        LibMatioHelper::getIntegerValues( clusteringFileName.toStdString().c_str(),
+                                           ui->clusterVariablesComboBox->itemText( index).toStdString().c_str(), labels);
 
-    QVector<int> sortedLabels;
+        QVector<int> sortedLabels;
 
-    for( int curVar = 0; curVar < labels.size(); curVar++)
-        if( !sortedLabels.contains( labels[curVar]))
-            sortedLabels << labels[curVar];
+        for( int curVar = 0; curVar < labels.size(); curVar++)
+            if( !sortedLabels.contains( labels[curVar]))
+                sortedLabels << labels[curVar];
 
-    qSort( sortedLabels);
+        qSort( sortedLabels);
 
-    ui->clusterLabelComboBox->clear();
-    ui->removeClusterLabelComboBox->clear();
-    ui->chosenLabelsWithColorsLabel->clear();
+        ui->clusterLabelComboBox->clear();
+        ui->removeClusterLabelComboBox->clear();
+        ui->chosenLabelsWithColorsLabel->clear();
 
-    for( int curVar = 0; curVar < sortedLabels.size(); curVar++)
-        ui->clusterLabelComboBox->addItem( QString::number(sortedLabels[curVar]));
+        for( int curVar = 0; curVar < sortedLabels.size(); curVar++)
+            ui->clusterLabelComboBox->addItem( QString::number(sortedLabels[curVar]));
+    }
 
     ui->packetRendererGLWidget->setLabels( labels);
 }
@@ -390,12 +395,16 @@ void MainWindow::displayLabelsStateChanged( int state){
     if( state == 0){
 
         ui->clusterVariablesComboBox->setEnabled(false);
+        ui->clusterVariablesComboBox->clear();
         ui->clusterLabelComboBox->setEnabled( false);
+        ui->clusterLabelComboBox->clear();
         ui->addClusterLabelPushButton->setEnabled( false);
         ui->removeClusterLabelComboBox->setEnabled( false);
+        ui->removeClusterLabelComboBox->clear();
         ui->removeClusterLabelPushButton->setEnabled( false);
         ui->chosenLabelsWithColorsLabel->clear();
         ui->loadClusterMatButton->setEnabled( false);
+        clusteringFileName.clear();
         ui->packetRendererGLWidget->disableClusteringDisplay();
     } else{
 
@@ -405,7 +414,6 @@ void MainWindow::displayLabelsStateChanged( int state){
         ui->removeClusterLabelComboBox->setEnabled( true);
         ui->removeClusterLabelPushButton->setEnabled( true);
         ui->loadClusterMatButton->setEnabled( true);
-        if( labels.size() > 0)
-            clusterVariableChanged( ui->clusterLabelComboBox->currentIndex());
+        clusterVariableChanged( ui->clusterLabelComboBox->currentIndex());
     }
 }

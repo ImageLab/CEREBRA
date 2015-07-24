@@ -157,7 +157,7 @@ void PacketRendererGLWidget::initializeShader(){
     shaderProgram.enableAttributeArray( "label");
 }
 
-void PacketRendererGLWidget::setPacket(Packet *packet, QString workingDirectory){
+void PacketRendererGLWidget::setPacket( Packet *packet, QString workingDirectory){
 
     if( aTimer->isActive())
         aTimer->stop();
@@ -180,6 +180,8 @@ void PacketRendererGLWidget::setPacket(Packet *packet, QString workingDirectory)
 
     createVoxelTexture();
 
+    labels.clear();
+
     textureOffset = 0;
     interpolationOffset = 0;
 
@@ -187,7 +189,7 @@ void PacketRendererGLWidget::setPacket(Packet *packet, QString workingDirectory)
     updateMatrices();
 
     if( shouldAnimate)
-        aTimer->start(UPDATE_FREQ_IN_MS); //updating per this amount of milliseconds
+        aTimer->start( UPDATE_FREQ_IN_MS); //updating per this amount of milliseconds
 }
 
 void PacketRendererGLWidget::paintGL(){
@@ -564,13 +566,13 @@ void PacketRendererGLWidget::labelDisabled( int label){
 
 void PacketRendererGLWidget::setLabels( std::vector<int> &voxelLabels){
 
-    displayLabels = true;
-
     labelActivations.clear();
     labels.clear();
     colorsOfLabels.clear();
 
     for( int curLabel = 0; curLabel < voxelLabels.size(); curLabel++){
+
+        displayLabels = true;
 
         labels << (GLfloat)voxelLabels[curLabel]
                << (GLfloat)voxelLabels[curLabel]
@@ -589,13 +591,20 @@ void PacketRendererGLWidget::setLabels( std::vector<int> &voxelLabels){
             colorsOfLabels[voxelLabels[curLabel]].second.second = rand() % 256;
         }
     }
+
+    if( labels.size() == 0){
+
+        labels.resize( voxelVertices.size());
+        displayLabels = false;
+    }
 }
 
 void PacketRendererGLWidget::disableClusteringDisplay(){
 
     displayLabels = false;
 
-    labels.clear();
+//    labels.clear();
+//    labels.resize( voxelVertices.size());
     labelActivations.clear();
     colorsOfLabels.clear();
 }

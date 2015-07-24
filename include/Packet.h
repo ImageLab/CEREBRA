@@ -20,14 +20,14 @@ public:
 	/// <summary>
 	// pair of edges. edge.first is origin. edge.second is the destination
 	/// </summary>
-	std::vector< std::pair<int, int> > edges;
+	std::vector< std::pair< int, int> > edges;
 
 	//edgeIntensities[edge][time]
-	std::vector< std::vector<float> > edgeIntensities;
+	std::vector< std::vector< float> > edgeIntensities;
 
 	/// <summary>
 	/// Positions in space.
 	/// </summary>
-	std::vector< std::pair< float, std::pair<float, float> > > voxel3DPositions;
+	std::vector< std::pair< float, std::pair< float, float> > > voxel3DPositions;
 };
 #endif
