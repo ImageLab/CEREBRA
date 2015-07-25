@@ -46,7 +46,7 @@ Packet *PacketFileReader::readPacketFromMatlab(QString fileLocation,
 
 void PacketFileReader::readMatVoxelLocations( QString fileName, QString voxelPosVariable, Packet *packet){
 
-    if( !voxelPosVariable.length())
+    if( voxelPosVariable == NULL || !voxelPosVariable.length())
         return;
 
     mat_t    *matfp;
@@ -77,6 +77,7 @@ void PacketFileReader::readMatVoxelLocations( QString fileName, QString voxelPos
         }
 
         Mat_VarFree( matvar);
+        matvar = NULL;
     }
 
     Mat_Close(matfp);
@@ -84,7 +85,7 @@ void PacketFileReader::readMatVoxelLocations( QString fileName, QString voxelPos
 
 void PacketFileReader::readMatVoxelIntensities( QString fileName, QString voxelIntensitiesVariable, Packet *packet){
 
-    if( !voxelIntensitiesVariable.length())
+    if( voxelIntensitiesVariable == NULL || !voxelIntensitiesVariable.length())
         return;
 
     mat_t    *matfp;
@@ -117,6 +118,7 @@ void PacketFileReader::readMatVoxelIntensities( QString fileName, QString voxelI
         }
 
         Mat_VarFree( matvar);
+        matvar = NULL;
     }
 
     Mat_Close(matfp);
@@ -124,7 +126,7 @@ void PacketFileReader::readMatVoxelIntensities( QString fileName, QString voxelI
 
 void PacketFileReader::readMatEdgePairs( QString fileName, QString edgePairsVariable, Packet *packet){
 
-    if( !edgePairsVariable.length())
+    if( edgePairsVariable == NULL || !edgePairsVariable.length())
         return;
 
     mat_t    *matfp;
@@ -158,6 +160,7 @@ void PacketFileReader::readMatEdgePairs( QString fileName, QString edgePairsVari
         }
 
         Mat_VarFree( matvar);
+        matvar = NULL;
     }
 
     Mat_Close( matfp);
@@ -165,7 +168,7 @@ void PacketFileReader::readMatEdgePairs( QString fileName, QString edgePairsVari
 
 void PacketFileReader::readMatEdgePairIntensities( QString fileName, QString edgePairsIntensitiesVariable, Packet *packet){
 
-    if( !edgePairsIntensitiesVariable.length())
+    if( edgePairsIntensitiesVariable == NULL || !edgePairsIntensitiesVariable.length())
         return;
 
     mat_t    *matfp;
@@ -199,6 +202,7 @@ void PacketFileReader::readMatEdgePairIntensities( QString fileName, QString edg
         }
 
         Mat_VarFree( matvar);
+        matvar = NULL;
     }
 
     Mat_Close(matfp);

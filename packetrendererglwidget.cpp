@@ -31,6 +31,13 @@ PacketRendererGLWidget::PacketRendererGLWidget( QWidget *parent) : QGLWidget( pa
     pairsMaxValue = 1.0;
     displayArcs = false;
     displayLabels = false;
+    pairsMinThreshold = INT_MAX;
+    pairsMaxThreshold = INT_MAX;
+    voxelMinThreshold = INT_MAX;
+    voxelMaxThreshold = INT_MAX;
+
+    textureOffset = 0;
+    interpolationOffset = 0;
 }
 
 PacketRendererGLWidget::~PacketRendererGLWidget(){
@@ -51,9 +58,7 @@ void PacketRendererGLWidget::initializeGL(){
     projection.setToIdentity();
     modelView.setToIdentity();
     translationMatrix.setToIdentity();
-    textureOffset = 0;
 
-    //gl attributes
     qglClearColor( QColor( Qt::black));
 
     glEnable( GL_DEPTH_TEST);
@@ -180,8 +185,6 @@ void PacketRendererGLWidget::setPacket( Packet *packet, QString workingDirectory
 
     createVoxelTexture();
 
-    labels.clear();
-
     textureOffset = 0;
     interpolationOffset = 0;
 
@@ -205,6 +208,11 @@ void PacketRendererGLWidget::paintGL(){
     shaderProgram.setUniformValue( "interpolationLevel", INTERPOLATION_LEVEL);
     shaderProgram.setUniformValue( "timeLength", (packetToRender && packetToRender->intensities.size() > 0)?(GLint)packetToRender->intensities[0].size():0);
 
+    //major slow down occurs here. fps decreases because for each drawing,
+    //there occurs a data transger (may be huge one). Therefore, to draw each
+    //frame (both edge and voxels at the same time), gpu needs to first
+    //transfer the edge data and display it, then transfer the voxel data
+    //to the gpu again to display voxels.
     if( edgeVertices.size() > 0 && displayArcs){
 
         shaderProgram.setUniformValue( "drawsEdges", true);
@@ -215,15 +223,24 @@ void PacketRendererGLWidget::paintGL(){
         shaderProgram.setUniformValue( "maxValue", pairsMaxValue);
 
         shaderProgram.setAttributeArray( "vPosition", edgeVertices.constData());
-        shaderProgram.setAttributeArray( "vIndex", edgeTextureIndex.constData(), 1);
-        shaderProgram.setAttributeArray( "label", edgeLabels.constData(), 1);
+        if( edgeTextureIndex.size() != edgeVertices.size())edgeTextureIndex.resize(edgeVertices.size());
+        shaderProgram.setAttributeArray( "vIndex", edgeTextureIndex.constData(),1);
+        if( edgeLabels.size() != edgeVertices.size()) edgeLabels.resize( edgeVertices.size());
+        shaderProgram.setAttributeArray( "label", edgeLabels.constData(),1);
 
         glDrawArrays( GL_LINES, 0, edgeVertices.size());
 
         shaderProgram.setAttributeArray( "vPosition", voxelVertices.constData());
-        shaderProgram.setAttributeArray( "vIndex", voxelTextureIndex.constData(), 1);
-        shaderProgram.setAttributeArray( "label", labels.constData(), 1);
+        if( voxelTextureIndex.size() != voxelVertices.size()) voxelTextureIndex.resize( voxelVertices.size());
+        shaderProgram.setAttributeArray( "vIndex", voxelTextureIndex.constData(),1);
+        if( labels.size() != voxelVertices.size()) labels.resize( voxelVertices.size());
+        shaderProgram.setAttributeArray( "label", labels.constData(),1);
     }
+
+    if( voxelTextureIndex.size() != voxelVertices.size()) voxelTextureIndex.resize( voxelVertices.size());
+    shaderProgram.setAttributeArray( "vIndex", voxelTextureIndex.constData(),1);
+    if( labels.size() != voxelVertices.size()) labels.resize( voxelVertices.size());
+    shaderProgram.setAttributeArray( "label", labels.constData(),1);
 
     shaderProgram.setUniformValue( "isClusteringEnabled", displayLabels);
     shaderProgram.setUniformValue( "drawsEdges", false);
@@ -357,9 +374,14 @@ void PacketRendererGLWidget::updateMatrices(){
 
 void PacketRendererGLWidget::updateAttributeArrays(){
 
+    labels.clear();
+    edgeLabels.clear();
     voxelVertices.clear();
     voxelTextureIndex.clear();
     voxelIndices.clear();
+    edgeVertices.clear();
+    edgeTextureIndex.clear();
+
     voxelIndices.resize( (int)packetToRender->voxel3DPositions.size() * NUM_OF_CON_POINTS_FOR_EACH_MESH);
     int voxelIndexCount = 0;
     for( int currentVoxel = 0; currentVoxel < (int)packetToRender->voxel3DPositions.size(); currentVoxel++){
@@ -402,12 +424,9 @@ void PacketRendererGLWidget::updateAttributeArrays(){
         voxelIndices[voxelIndexCount++] = curVoxelIndexBegin + 1;  voxelIndices[voxelIndexCount++] = curVoxelIndexBegin + 0;  voxelIndices[voxelIndexCount++] = curVoxelIndexBegin + 4;
     }
 
-    glGenBuffers (1, &voxelIBO);
+    glGenBuffers( 1, &voxelIBO);
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, voxelIBO);
     glBufferData( GL_ELEMENT_ARRAY_BUFFER, voxelIndices.size()*sizeof(unsigned int), &(voxelIndices.front()), GL_STATIC_DRAW);
-
-    edgeVertices.clear();
-    edgeTextureIndex.clear();
 
     int edgeTextureBegin = (int)packetToRender->voxel3DPositions.size() * (int)packetToRender->intensities[0].size();
 
@@ -430,17 +449,13 @@ void PacketRendererGLWidget::updateAttributeArrays(){
                          << curEdgeTextureBegin;
     }
 
-    edgeLabels.resize( edgeTextureIndex.size());
-
     initializeShader();
 
     shaderProgram.setAttributeArray( "vPosition", voxelVertices.constData());
-    shaderProgram.setAttributeArray( "vIndex", voxelTextureIndex.constData(), 1);
-
-    if( labels.size() == 0)
-        labels.resize(voxelVertices.size());
-
-    shaderProgram.setAttributeArray( "label", labels.constData(), 1);
+    if( voxelTextureIndex.size() != voxelVertices.size()) voxelTextureIndex.resize( voxelVertices.size());
+    shaderProgram.setAttributeArray( "vIndex", voxelTextureIndex.constData(),1);
+    if( labels.size() != voxelVertices.size()) labels.resize( voxelVertices.size());
+    shaderProgram.setAttributeArray( "label", labels.constData(),1);
 }
 
 void PacketRendererGLWidget::createVoxelTexture(){
@@ -573,6 +588,7 @@ void PacketRendererGLWidget::setLabels( std::vector<int> &voxelLabels){
     for( int curLabel = 0; curLabel < voxelLabels.size(); curLabel++){
 
         displayLabels = true;
+        labelActivations[voxelLabels[curLabel]] = false;
 
         labels << (GLfloat)voxelLabels[curLabel]
                << (GLfloat)voxelLabels[curLabel]
@@ -585,17 +601,10 @@ void PacketRendererGLWidget::setLabels( std::vector<int> &voxelLabels){
 
         if( colorsOfLabels.find(voxelLabels[curLabel]) == colorsOfLabels.end()){
 
-            labelActivations[voxelLabels[curLabel]] = false;
             colorsOfLabels[voxelLabels[curLabel]].first = rand() % 256;
             colorsOfLabels[voxelLabels[curLabel]].second.first = rand() % 256;
             colorsOfLabels[voxelLabels[curLabel]].second.second = rand() % 256;
         }
-    }
-
-    if( labels.size() == 0){
-
-        labels.resize( voxelVertices.size());
-        displayLabels = false;
     }
 }
 
@@ -603,8 +612,6 @@ void PacketRendererGLWidget::disableClusteringDisplay(){
 
     displayLabels = false;
 
-//    labels.clear();
-//    labels.resize( voxelVertices.size());
     labelActivations.clear();
     colorsOfLabels.clear();
 }

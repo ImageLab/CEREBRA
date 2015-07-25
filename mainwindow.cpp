@@ -66,7 +66,7 @@ void MainWindow::loadMatFileButtonClicked(){
 
     directory = QFileInfo(fileName).absoluteDir().absolutePath();
 
-    std::vector< char *> variables;
+    std::vector< std::string> variables;
 
     if( LibMatioHelper::getVariables( fileName.toStdString().c_str(), variables) == EXIT_FAILURE){
 
@@ -84,18 +84,18 @@ void MainWindow::loadMatFileButtonClicked(){
     ui->edgePairsComboBox->clear();
     ui->edgeIntensitiesComboBox->clear();
 
+    ui->voxelPositionComboBox->addItem("Select...");
+    ui->voxelIntensitiesComboBox->addItem("Select...");
+    ui->edgePairsComboBox->addItem("Select...");
+    ui->edgeIntensitiesComboBox->addItem("Select...");
+
     for( int curVar = 0; curVar < (int)variables.size(); curVar++){
 
-        ui->voxelPositionComboBox->addItem(QString(variables.at(curVar)));
-        ui->voxelIntensitiesComboBox->addItem(QString(variables.at(curVar)));
-        ui->edgePairsComboBox->addItem(QString(variables.at(curVar)));
-        ui->edgeIntensitiesComboBox->addItem(QString(variables.at(curVar)));
+        ui->voxelPositionComboBox->addItem(QString(variables.at(curVar).c_str()));
+        ui->voxelIntensitiesComboBox->addItem(QString(variables.at(curVar).c_str()));
+        ui->edgePairsComboBox->addItem(QString(variables.at(curVar).c_str()));
+        ui->edgeIntensitiesComboBox->addItem(QString(variables.at(curVar).c_str()));
     }
-
-    ui->voxelPositionComboBox->addItem("");
-    ui->voxelIntensitiesComboBox->addItem("");
-    ui->edgePairsComboBox->addItem("");
-    ui->edgeIntensitiesComboBox->addItem("");
 
     ui->matlabTab->setEnabled(true);
 }
@@ -103,11 +103,13 @@ void MainWindow::loadMatFileButtonClicked(){
 void MainWindow::displayButtonClicked()
 {
     if( !fileName.isNull())
-        ui->packetRendererGLWidget->setPacket(reader.readPacketFromMatlab( fileName,
-                                                                           ui->voxelPositionComboBox->currentText(),
-                                                                           ui->voxelIntensitiesComboBox->currentText(),
-                                                                           ui->edgePairsComboBox->currentText(),
-                                                                           ui->edgeIntensitiesComboBox->currentText()), directory);
+        ui->packetRendererGLWidget->
+                setPacket(reader.readPacketFromMatlab( fileName,
+                                                       (ui->voxelPositionComboBox->currentIndex() == 0)?NULL:ui->voxelPositionComboBox->currentText(),
+                                                       (ui->voxelIntensitiesComboBox->currentIndex() == 0)?NULL:ui->voxelIntensitiesComboBox->currentText(),
+                                                       (ui->edgePairsComboBox->currentIndex() == 0)?NULL:ui->edgePairsComboBox->currentText(),
+                                                       (ui->edgeIntensitiesComboBox->currentIndex() == 0)?NULL:ui->edgeIntensitiesComboBox->currentText()),
+                                                       directory);
 }
 
 void MainWindow::minValueTextEdited(QString text){
@@ -310,7 +312,7 @@ void MainWindow::loadClusteringMATFileButtonClicked(){
 
     clusteringFileName = fileName;
 
-    std::vector< char *> variables;
+    std::vector< std::string> variables;
 
     if( LibMatioHelper::getVariables( fileName.toStdString().c_str(), variables) == EXIT_FAILURE){
 
@@ -324,7 +326,7 @@ void MainWindow::loadClusteringMATFileButtonClicked(){
     ui->clusterVariablesComboBox->clear();
 
     for( int curVar = 0; curVar < variables.size(); curVar++)
-        ui->clusterVariablesComboBox->addItem( variables.at(curVar));
+        ui->clusterVariablesComboBox->addItem( variables.at(curVar).c_str());
 }
 
 void MainWindow::updateClusterLabelText(){
@@ -370,7 +372,6 @@ void MainWindow::clusterVariableChanged( int index){
     if( clusteringFileName.length() > 0){
         LibMatioHelper::getIntegerValues( clusteringFileName.toStdString().c_str(),
                                            ui->clusterVariablesComboBox->itemText( index).toStdString().c_str(), labels);
-
         QVector<int> sortedLabels;
 
         for( int curVar = 0; curVar < labels.size(); curVar++)
@@ -382,7 +383,6 @@ void MainWindow::clusterVariableChanged( int index){
         ui->clusterLabelComboBox->clear();
         ui->removeClusterLabelComboBox->clear();
         ui->chosenLabelsWithColorsLabel->clear();
-
         for( int curVar = 0; curVar < sortedLabels.size(); curVar++)
             ui->clusterLabelComboBox->addItem( QString::number(sortedLabels[curVar]));
     }
@@ -407,7 +407,6 @@ void MainWindow::displayLabelsStateChanged( int state){
         clusteringFileName.clear();
         ui->packetRendererGLWidget->disableClusteringDisplay();
     } else{
-
         ui->clusterVariablesComboBox->setEnabled( true);
         ui->clusterLabelComboBox->setEnabled( true);
         ui->addClusterLabelPushButton->setEnabled( true);

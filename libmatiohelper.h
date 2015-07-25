@@ -9,12 +9,11 @@ class LibMatioHelper{
 
 public:
 
-    static int getVariables( const char *fName, std::vector< char *> &variables){
+    static int getVariables( const char *fName, std::vector< std::string> &variables){
 
-        mat_t    *matfp;
+        mat_t *matfp;
 
         variables.clear();
-        std::vector< matvar_t *> matVariables;
 
         matfp = Mat_Open( fName, MAT_ACC_RDONLY);
 
@@ -25,14 +24,12 @@ public:
         }
 
         matvar_t *matvar;
-        while ( NULL != (matvar = Mat_VarReadNext( matfp))){
+        while ( NULL != (matvar = Mat_VarReadNextInfo( matfp))){
 
-            variables.push_back( matvar->name);
-            matVariables.push_back( matvar);
+            variables.push_back( std::string(matvar->name));
+            Mat_VarFree( matvar);
+            matvar = NULL;
         }
-
-        for( int var = 0; var < matVariables.size(); var++)
-            Mat_VarFree( matVariables.at(var));
 
         Mat_Close( matfp);
 
