@@ -81,7 +81,6 @@ void PacketFileReader::readMatVoxelLocations( QString fileName, QString voxelPos
 
     Mat_Close(matfp);
 }
-
 void PacketFileReader::readMatVoxelIntensities( QString fileName, QString voxelIntensitiesVariable, Packet *packet){
 
     if( !voxelIntensitiesVariable.length())
