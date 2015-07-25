@@ -11,15 +11,13 @@
 #include "Packet.h"
 #include <QOpenGLFunctions_3_3_Core>
 
-/**
- * @brief The GLWidget class
- * This QGLWidget class handles OpenGL work of the project.
- * It is supposed to draw voxels if the necessary data
- * (positions, texture coordinates etc.) provided. Anyone
- * using this widget should not bother with OpenGL work.
- */
-using namespace std;
 
+using namespace std;
+/**
+ * @brief PacketRendererGLWidget class
+ * draw voxels and edges if the necessary data
+ * (positions, connections) provided.
+ */
 class PacketRendererGLWidget : public QGLWidget, protected QOpenGLFunctions_3_3_Core
 {
     Q_OBJECT
@@ -84,6 +82,7 @@ public:
     /**
      * @brief setPacket updates the packet to be rendered
      * @param packet is the new packet which will be replaced with the current one, if any.
+     * @param workingDirectory is the directory where it is asked
      */
     void setPacket( Packet *packet, QString workingDirectory = "");
 
@@ -91,24 +90,101 @@ public:
      * @brief setWorkingDirectory makes PacketRendererGLWidget to
      * work on the specified directory. If anything specified,
      * it works on the location where the executable is located.
-     * @param workingDirectory is the directory where it is asked
+     * @param workingDir is the directory where it is asked
      * to work on.
      */
     void setWorkingDirectory( QString workingDir);
-
+    /**
+     * @brief setThresholdRange sets thresholds range for voxel intensities.
+     * It arranges range with given threshold values to display voxels that is given
+     * in that range.
+     * @param minThreshold is the minimum threshold range for voxel intensity values
+     * @param maxThreshold is the maximum threshold range for voxel intensity values
+     */
     void setThresholdRange( float minThreshold, float maxThreshold);
+    /**
+     * @brief setPairsThresholdRange sets thresholds range for edge pair intensities.
+     * It arranges range with given threshold values to display edpe pairs that is given
+     * in that range.
+     * @param minThreshold is the minimum threshold range for edge pair intensities
+     * @param maxThreshold is the maximum threshold range for edge pair intensities
+     */
     void setPairsThresholdRange( float minThreshold, float maxThreshold);
+    /**
+     * @brief setVoxelMinValue sets minimum value for the voxel intensities.
+     * It uses setVoxelMinValue function to normalize voxel intensity values
+     * to set minimum value with given voxelMinValue parameter.
+     * @param voxelMinValue is the minimum value for the voxel intensities.
+     */
     void setVoxelMinValue( float voxelMinValue);
+    /**
+     * @brief setVoxelMaxValue sets maximum value for the voxel intensities.
+     * It uses setVoxelMaxValue function to normalize voxel intensity values
+     * to set maximum value with given voxelMaxValue parameter.
+     * @param voxelMaxValue is the maximum value for the voxel intensities.
+     */
     void setVoxelMaxValue( float voxelMaxValue);
+    /**
+     * @brief setPairsMinValue sets minimum value for the edge pair intensities.
+     * It uses setPairsMinValue function to normalize edge pair intensity values
+     * to set minimum value with given pairsMinValue parameter.
+     * @param pairsMinValue is the minimum value for the edge pair intensities
+     */
     void setPairsMinValue( float pairsMinValue);
+    /**
+     * @brief setPairsMaxValue sets maximum value for the edge pair intensities.
+     * It uses setPairsMaxValue function to normalize edge pair intensity values
+     * to set maximum value with given pairsMaxValue parameter.
+     * @param pairsMaxValue is the maximum value for the edge pair intensities
+     */
     void setPairsMaxValue( float pairsMaxValue);
+    /**
+     * @brief shouldDisplayArcs decides to show arcs or not.
+     * @param shouldDisplay is the boolean variable to decide display arcs.
+     */
     void shouldDisplayArcs( bool shouldDisplay);
+    /**
+     * @brief labelEnabled enables label with given RGB color values.
+     * @param label is the index of the label that is enabled
+     * @param r is the red value to set label color
+     * @param g is the green value to set label color
+     * @param b is the blue value to set label color
+     */
     void labelEnabled( int label, int r, int g, int b);
+    /**
+     * @brief labelEnabled enables label that has given index as paramater.
+     * @param label is the index of the label that is enabled
+     */
     void labelEnabled( int label);
+    /**
+     * @brief labelDisabled disable label that has given index as paramater.
+     * @param label is the index of the label that is disabled.
+     */
     void labelDisabled( int label);
+    /**
+     * @brief disableClusteringDisplay disables clustering variables for displaying on the screen.
+     */
     void disableClusteringDisplay();
+    /**
+     * @brief setLabels set voxel labels when cluster variables has loaded.
+     * @param voxelLabels
+     */
     void setLabels( std::vector<int> &voxelLabels);
+    /**
+     * @brief getRGBOfALabel gets RGB of a voxel labels.
+     * @param label is the index of the label to get RGB values from it.
+     * @param r is the red value received from the label.
+     * @param g is the green value received from the label.
+     * @param b is the blue value received from the label.
+     */
     void getRGBOfALabel( int label, int &r, int &g, int &b);
+    /**
+     * @brief setRGBOfALabel sets RGB of a voxel labels.
+     * @param label is the index of the label to set given RGB values to it.
+     * @param r is the red value to set label color
+     * @param g is the green value to set label color
+     * @param b is the blue value to set label color
+     */
     void setRGBForALabel( int label, int r, int g, int b);
 
 //auxiliary functions
@@ -128,11 +204,26 @@ private:
      */
     void updateAttributeArrays();
 
+    /**
+     * @brief initializeShader initiliaze shader.
+     */
+
     void initializeShader();
+    /**
+     * @brief createVoxelTexture creates voxel texture
+     */
 
     void createVoxelTexture();
+    /**
+     * @brief createTexture creates voxel texture
+     * according to given voxel positions and intensity values.
+     * @param textureName
+     * @param intensityValues
+     */
     void createTexture( QString textureName, vector< vector<float> > &intensityValues);
-
+    /**
+     * @brief getWorkingDirectory gets working directory.
+     */
     QString getWorkingDirectory();
 
 private:

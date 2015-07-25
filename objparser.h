@@ -6,6 +6,9 @@
 #include <sstream>
 #include <string>
 
+/**
+ * @brief OBJParser class parse .obj file and set it to approporiate variables.
+ */
 class OBJParser
 {
 public:
