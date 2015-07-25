@@ -18,7 +18,7 @@ public:
      * It uses Mat_VArReadNext function to read each variable from that file.
      * Display variables into the matlab variables part at the top-right of the screen.
      * @param fName is the matlab file name given as paramater to get variables
-     * @param variables is read variables that comes from the given matlab file.     *
+     * @param variables is read variables that comes from the given matlab file.
      */
     static int getVariables( const char *fName, std::vector< char *> &variables){
 
@@ -53,7 +53,8 @@ public:
      * @brief getIntegerValues gets values of the given variable name.
      * It simply reads the integer values with the given column-row index alignment.
      * @param fName is the matlab file name given as paramater to get variables
-     * @param variables is read variables that comes from the given matlab file.     *
+     * @param varName is the name of variavle to get values from it.
+     * @param values is the values of that is read from the given variable name parameter.
      */
     static int getIntegerValues( const char* fName, const char *varName, std::vector< int> &values){
 
