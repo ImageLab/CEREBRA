@@ -19,11 +19,6 @@
     <verstretch>0</verstretch>
    </sizepolicy>
   </property>
-  <property name="font">
-   <font>
-    <pointsize>12</pointsize>
-   </font>
-  </property>
   <property name="windowTitle">
    <string>CEREBRA</string>
   </property>
@@ -176,8 +171,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>372</width>
-               <height>298</height>
+               <width>495</width>
+               <height>266</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="clusteringTabVLayout">
@@ -278,11 +273,6 @@
           </item>
          </layout>
         </widget>
-        <widget class="QWidget" name="filterTabWidget">
-         <attribute name="title">
-          <string>Filters</string>
-         </attribute>
-        </widget>
        </widget>
       </item>
       <item>
@@ -300,7 +290,7 @@
          <enum>QTabWidget::Rounded</enum>
         </property>
         <property name="currentIndex">
-         <number>1</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="voxelTab">
          <attribute name="title">
